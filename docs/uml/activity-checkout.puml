@@ -1,0 +1,53 @@
+@startuml Activity Diagram - Checkout Pesanan
+|Pembeli|
+start
+:Membuka halaman Keranjang;
+:Memilih Lanjut ke Checkout;
+
+|Sistem|
+:Mengelompokkan barang belanjaan per toko (UMKM);
+:Memuat formulir alamat, kurir, dan voucher;
+|Pembeli|
+:Mengisi nama, telepon, dan alamat kirim;
+:Memilih Kurir Pengiriman (JNE, J&T, SiCepat, GoSend);
+
+|Sistem|
+:Menghitung tarif ongkir dan estimasi pengiriman secara otomatis;
+if (Ingin klaim Voucher?) then (ya)
+    |Pembeli|
+    :Menginput kode voucher;
+    |Sistem|
+    :Memvalidasi voucher (tanggal, minimum belanja);
+    if (Voucher Valid?) then (ya)
+        :Menerapkan diskon ke total harga;
+    else (tidak)
+        :Menampilkan alert "Voucher tidak valid";
+    endif
+else (tidak)
+endif
+
+|Pembeli|
+:Menekan tombol "Buat Pesanan Sekarang";
+
+|Sistem|
+:Memeriksa kembali stok produk akhir;
+if (Stok Aman?) then (ya)
+    |Database|
+    :Membuat baris data di tabel orders (status: pending);
+    :Membuat detail order di order_items;
+    :Memotong kuantitas stok di products / variants;
+    :Membuat record tabel payments (status: pending);
+    :Mencatat log di order_histories;
+    :Menghapus item tersebut dari keranjang belanja (carts);
+    
+    |Sistem|
+    :Mengarahkan pembeli ke halaman Detail Order;
+    |Pembeli|
+    :Melihat detail order & petunjuk transfer pembayaran;
+    stop
+else (tidak)
+    |Sistem|
+    :Mengarahkan kembali ke keranjang dengan pesan error stok habis;
+    stop
+endif
+@enduml

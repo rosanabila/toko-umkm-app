@@ -1,0 +1,34 @@
+@startuml Activity Diagram - Beri Rating & Ulasan Produk
+|Pembeli|
+start
+:Membuka detail pesanan berstatus completed;
+:Menekan tombol "Beri Ulasan" pada item barang;
+:Memilih jumlah bintang (1-5 rating);
+:Menulis komentar komentar ulasan (opsional);
+:Menekan tombol "Kirim Ulasan";
+
+|Sistem|
+:Memverifikasi kepemilikan pesanan dan status completed;
+if (Verifikasi Sukses?) then (ya)
+    |Database|
+    :Memeriksa apakah ulasan item sudah pernah dikirim;
+    if (Belum ada ulasan?) then (ya)
+        :Menyimpan data ulasan baru di tabel reviews\n(rating, comment, is_moderated: false);
+        :Memperbarui rata-rata rating produk (cache/dynamic);
+        
+        |Sistem|
+        :Menampilkan alert "Terima kasih atas ulasan Anda";
+        |Pembeli|
+        :Melihat ulasan bintang terunggah di daftar;
+        stop
+    else (tidak)
+        |Sistem|
+        :Menampilkan alert "Anda sudah memberi ulasan";
+        stop
+    endif
+else (tidak)
+    |Sistem|
+    :Mengembalikan error akses ditolak;
+    stop
+endif
+@enduml

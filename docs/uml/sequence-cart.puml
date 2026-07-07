@@ -1,0 +1,50 @@
+@startuml Sequence Diagram - Kelola Keranjang Belanja
+autonumber
+
+actor "Pembeli (Buyer)" as User
+boundary "ProductShow (Blade)" as View
+control "Router (web.php)" as Router
+control "CartController" as Controller
+entity "Product / Variant (Model)" as ProdModel
+entity "Cart (Model)" as CartModel
+database "Database (MySQL)" as DB
+
+User -> View : Pilih varian (jika ada), isi kuantitas, klik "Beli"
+View -> Router : POST /cart/add/{product_id}
+Router -> Controller : add(Request, product_id)
+
+activate Controller
+Controller -> ProdModel : Find product & variant data
+activate ProdModel
+ProdModel -> DB : SELECT price, stock FROM products/variants
+DB --> ProdModel : Product & Variant records
+deactivate ProdModel
+
+alt Stok Kurang dari Kuantitas Belanja
+    Controller --> View : Redirect back dengan error "Stok tidak mencukupi"
+    View --> User : Tampilkan alert stok kurang
+else Stok Mencukupi
+    Controller -> CartModel : Query existing item in user cart
+    activate CartModel
+    CartModel -> DB : SELECT * FROM carts WHERE user_id AND product_id AND variant_id
+    DB --> CartModel : Cart record (jika ada)
+    deactivate CartModel
+    
+    alt Barang sudah ada di keranjang
+        Controller -> CartModel : increment quantity
+        activate CartModel
+        CartModel -> DB : UPDATE carts SET quantity = quantity + $qty
+        deactivate CartModel
+    else Barang belum ada di keranjang
+        Controller -> CartModel : Cart::create(data)
+        activate CartModel
+        CartModel -> DB : INSERT INTO carts
+        deactivate CartModel
+    end
+    
+    Controller --> Router : Redirect to /cart (Cart View)
+    deactivate Controller
+    Router --> User : Tampilkan halaman Keranjang Belanja terupdate
+end
+
+@enduml

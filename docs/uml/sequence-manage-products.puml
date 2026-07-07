@@ -1,0 +1,54 @@
+@startuml Sequence Diagram - Kelola Produk & Varian
+autonumber
+
+actor "Penjual (Seller)" as User
+boundary "ProductCreateView (Blade)" as View
+control "Router (web.php)" as Router
+control "SellerProductController" as Controller
+entity "Product (Model)" as ProdModel
+entity "ProductVariant (Model)" as VariantModel
+database "Database (MySQL)" as DB
+
+User -> View : Isi form produk & variasi, klik "Simpan"
+View -> Router : POST /seller/products (form data & image file)
+Router -> Controller : store(Request)
+
+activate Controller
+Controller -> Controller : Validasi form & file foto (format, size)
+
+alt Validasi Input/Gambar Gagal
+    Controller --> View : Redirect back dengan errors & old input
+    View --> User : Tampilkan alert error validasi di form
+else Validasi Sukses
+    Controller -> Controller : Buat slug dari nama produk
+    
+    alt Ada file gambar terunggah
+        Controller -> Controller : Simpan file ke /uploads/products/
+    end
+    
+    Controller -> DB : DB::beginTransaction()
+    
+    Controller -> ProdModel : Product::create(productData)
+    activate ProdModel
+    ProdModel -> DB : INSERT INTO products
+    DB --> ProdModel : Product ID
+    deactivate ProdModel
+    
+    alt Penjual menambahkan variasi produk
+        loop Setiap varian yang diinput
+            Controller -> VariantModel : ProductVariant::create(variantData)
+            activate VariantModel
+            VariantModel -> DB : INSERT INTO product_variants
+            deactivate VariantModel
+        end
+    end
+    
+    Controller -> DB : DB::commit()
+    
+    Controller --> Router : Redirect to /seller/products
+    deactivate Controller
+    
+    Router --> User : Tampilkan Halaman Daftar Produk Toko
+end
+
+@enduml

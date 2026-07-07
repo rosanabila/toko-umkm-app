@@ -1,0 +1,61 @@
+@startuml Sequence Diagram - Ajukan Retur Komplain
+autonumber
+
+actor "Pembeli (Buyer)" as User
+boundary "OrderDetailView (Blade)" as View
+control "Router (web.php)" as Router
+control "BuyerController" as Controller
+entity "OrderReturn (Model)" as ReturnModel
+entity "Order (Model)" as OrderModel
+entity "OrderHistory (Model)" as HistoryModel
+database "Database (MySQL)" as DB
+
+User -> View : Isi form komplain & foto bukti, klik "Kirim Pengajuan"
+View -> Router : POST /buyer/order/{id}/return (reason, image)
+Router -> Controller : submitReturn(Request, id)
+
+activate Controller
+Controller -> OrderModel : Periksa status order (must be shipped/completed)
+activate OrderModel
+OrderModel -> DB : SELECT status FROM orders WHERE id = ?
+DB --> OrderModel : Order status
+deactivate OrderModel
+
+alt Status Order Tidak Memenuhi Syarat
+    Controller --> View : Redirect back dengan error status ilegal
+    View --> User : Tampilkan pesan kegagalan komplain
+else Status Order Valid
+    Controller -> Controller : Validasi input form & file bukti
+    
+    alt Validasi Gagal
+        Controller --> View : Redirect back dengan error validasi
+        View --> User : Tampilkan error di form komplain
+    else Validasi Sukses
+        Controller -> Controller : Simpan file bukti ke /uploads/returns/
+        Controller -> DB : DB::beginTransaction()
+        
+        Controller -> ReturnModel : OrderReturn::create(returnData)
+        activate ReturnModel
+        ReturnModel -> DB : INSERT INTO order_returns (status: pending)
+        deactivate ReturnModel
+        
+        Controller -> OrderModel : Ubah status order menjadi returned
+        activate OrderModel
+        OrderModel -> DB : UPDATE orders SET status = 'returned'
+        deactivate OrderModel
+        
+        Controller -> HistoryModel : Catat riwayat pengajuan retur
+        activate HistoryModel
+        HistoryModel -> DB : INSERT INTO order_histories (status: returned)
+        deactivate HistoryModel
+        
+        Controller -> DB : DB::commit()
+        
+        Controller --> Router : Redirect back dengan pesan sukses pengajuan
+        deactivate Controller
+        
+        Router --> User : Tampilkan halaman detail dengan status terupdate: RETUR
+    end
+end
+
+@enduml

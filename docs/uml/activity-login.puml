@@ -1,0 +1,40 @@
+@startuml Activity Diagram - Login Akun
+|Pengguna|
+start
+:Mengakses halaman masuk (Login);
+:Mengisi email dan kata sandi;
+:Menekan tombol "Masuk";
+
+|Sistem|
+:Memverifikasi format email dan sandi;
+if (Format Valid?) then (ya)
+    |Database|
+    :Mencocokkan kredensial di tabel users;
+    if (Kredensial Cocok?) then (ya)
+        |Sistem|
+        :Membuat sesi masuk (Session Regenerate);
+        if (Role User = Admin?) then (ya)
+            :Mengarahkan ke Dashboard Admin;
+        elseif (Role User = Penjual?) then (ya)
+            :Mengarahkan ke Dashboard Penjual;
+        else (Pembeli)
+            :Mengarahkan ke Halaman Utama / Asal;
+        endif
+        |Pengguna|
+        :Masuk ke halaman beranda/dashboard;
+        stop
+    else (tidak)
+        |Sistem|
+        :Mengembalikan error kredensial salah;
+        |Pengguna|
+        :Melihat pesan kesalahan email/sandi;
+        goto :Mengisi email dan kata sandi;
+    endif
+else (tidak)
+    |Sistem|
+    :Mengembalikan error validasi form;
+    |Pengguna|
+    :Memperbaiki input email/sandi;
+    goto :Mengisi email dan kata sandi;
+endif
+@enduml

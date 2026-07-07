@@ -1,0 +1,51 @@
+@startuml Sequence Diagram - Login Akun
+autonumber
+
+actor "Pengguna (User)" as User
+boundary "LoginView (Blade)" as View
+control "Router (web.php)" as Router
+control "AuthController" as Controller
+entity "User (Model)" as UserModel
+database "Database (MySQL)" as DB
+
+User -> View : Akses halaman masuk
+View -> Router : GET /login
+Router -> Controller : showLogin()
+Controller --> View : Tampilkan form login
+User -> View : Isi email & sandi, klik "Masuk"
+View -> Router : POST /login (email, password)
+Router -> Controller : login(Request)
+
+activate Controller
+Controller -> Controller : Validasi format input
+
+alt Format Input Tidak Valid
+    Controller --> View : Redirect back dengan error validasi
+    View --> User : Tampilkan error di input form
+else Format Input Valid
+    Controller -> UserModel : Auth::attempt(credentials)
+    activate UserModel
+    UserModel -> DB : SELECT * FROM users WHERE email = ?
+    DB --> UserModel : User record & Hashed Password
+    deactivate UserModel
+    
+    alt Verifikasi Password Gagal
+        Controller --> View : Redirect back dengan error kredensial salah
+        View --> User : Tampilkan "Email/Sandi salah"
+    else Verifikasi Password Sukses (Login Sukses)
+        Controller -> Controller : Session::regenerate()
+        
+        alt Role User = 'admin'
+            Controller --> Router : Redirect to /admin/dashboard
+        elseif Role User = 'penjual'
+            Controller --> Router : Redirect to /seller/dashboard
+        else Role User = 'pembeli'
+            Controller --> Router : Redirect to intended url (Home)
+        end
+        deactivate Controller
+        
+        Router --> User : Tampilkan Beranda / Dashboard sesuai Akses Role
+    end
+end
+
+@enduml

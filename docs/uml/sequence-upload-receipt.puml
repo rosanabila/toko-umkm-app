@@ -1,0 +1,41 @@
+@startuml Sequence Diagram - Unggah Bukti Pembayaran
+autonumber
+
+actor "Pembeli (Buyer)" as User
+boundary "OrderDetailView (Blade)" as View
+control "Router (web.php)" as Router
+control "BuyerController" as Controller
+entity "Payment (Model)" as PayModel
+entity "OrderHistory (Model)" as HistoryModel
+database "Database (MySQL)" as DB
+
+User -> View : Pilih file foto bukti transfer, klik "Kirim"
+View -> Router : POST /buyer/order/{id}/pay (file, method)
+Router -> Controller : submitPayment(Request, id)
+
+activate Controller
+Controller -> Controller : Validasi file (format image, max 2MB)
+
+alt Validasi Gambar Gagal
+    Controller --> View : Redirect back dengan error validasi file
+    View --> User : Tampilkan alert kesalahan format/ukuran file
+else Validasi Gambar Sukses
+    Controller -> Controller : Pindahkan file ke /uploads/receipts/
+    Controller -> PayModel : update/create record pembayaran
+    activate PayModel
+    PayModel -> DB : UPDATE payments SET payment_receipt = ?, status = 'pending'
+    DB --> PayModel : Success
+    deactivate PayModel
+    
+    Controller -> HistoryModel : OrderHistory::create(uploadLog)
+    activate HistoryModel
+    HistoryModel -> DB : INSERT INTO order_histories
+    deactivate HistoryModel
+    
+    Controller --> Router : Redirect back dengan pesan sukses
+    deactivate Controller
+    
+    Router --> User : Tampilkan halaman detail dengan status menunggu verifikasi
+end
+
+@enduml

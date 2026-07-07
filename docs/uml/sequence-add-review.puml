@@ -1,0 +1,56 @@
+@startuml Sequence Diagram - Beri Rating & Ulasan Produk
+autonumber
+
+actor "Pembeli (Buyer)" as User
+boundary "OrderDetailView (Blade)" as View
+control "Router (web.php)" as Router
+control "BuyerController" as Controller
+entity "OrderItem (Model)" as ItemModel
+entity "Review (Model)" as ReviewModel
+database "Database (MySQL)" as DB
+
+User -> View : Klik "Beri Ulasan", pilih bintang, tulis komentar, klik "Kirim"
+View -> Router : POST /buyer/review/add (order_item_id, rating, comment)
+Router -> Controller : submitReview(Request)
+
+activate Controller
+Controller -> Controller : Validasi format input (rating, comment)
+
+alt Validasi Input Gagal
+    Controller --> View : Redirect back dengan error validasi
+    View --> User : Tampilkan alert error validasi
+else Validasi Input Sukses
+    Controller -> ItemModel : Temukan item belanja & periksa akses kepemilikan
+    activate ItemModel
+    ItemModel -> DB : SELECT * FROM order_items WHERE id = ?
+    DB --> ItemModel : Order item record & Order buyer_id
+    deactivate ItemModel
+    
+    alt Pembeli Bukan Pemilik Transaksi / Status Order Bukan 'completed'
+        Controller --> View : Redirect back dengan error akses ditolak
+        View --> User : Tampilkan alert akses ditolak
+    else Akses Terverifikasi
+        Controller -> ReviewModel : Periksa ulasan ganda untuk item tersebut
+        activate ReviewModel
+        ReviewModel -> DB : SELECT id FROM reviews WHERE order_item_id = ?
+        DB --> ReviewModel : Review record (jika sudah ada)
+        deactivate ReviewModel
+        
+        alt Sudah pernah memberikan ulasan
+            Controller --> View : Redirect back dengan error ulasan ganda
+            View --> User : Tampilkan alert ulasan ganda
+        else Belum ada ulasan
+            Controller -> ReviewModel : Review::create(reviewData)
+            activate ReviewModel
+            ReviewModel -> DB : INSERT INTO reviews (rating, comment, is_moderated: false)
+            deactivate ReviewModel
+            
+            Controller --> Router : Redirect back dengan pesan sukses
+            deactivate Controller
+            
+            Router --> User : Tampilkan halaman detail terupdate dengan ulasan bintang terunggah
+        end
+    end
+end
+
+@enduml

@@ -1,0 +1,55 @@
+@startuml Activity Diagram - Kelola Keranjang Belanja
+|Pembeli|
+start
+:Membuka detail produk;
+if (Produk memiliki varian?) then (ya)
+    :Memilih varian produk;
+else (tidak)
+endif
+:Mengisi jumlah kuantitas;
+:Menekan tombol "Tambah ke Keranjang";
+
+|Sistem|
+:Memeriksa ketersediaan stok;
+|Database|
+:Membaca sisa stok produk/varian;
+if (Stok mencukupi?) then (ya)
+    |Database|
+    if (Barang & varian sama sudah ada di keranjang?) then (ya)
+        :Menambahkan kuantitas di baris cart;
+    else (tidak)
+        :Membuat baris data cart baru;
+    endif
+    |Sistem|
+    :Mengarahkan ke halaman Keranjang;
+    |Pembeli|
+    :Melihat daftar belanjaan di keranjang;
+    
+    split
+        :Mengubah kuantitas barang;
+        |Sistem|
+        :Memeriksa limit stok baru;
+        if (Stok mencukupi?) then (ya)
+            |Database|
+            :Memperbarui kuantitas keranjang;
+        else (tidak)
+            |Sistem|
+            :Mengembalikan pesan error stok kurang;
+        endif
+    split biographies
+        :Menghapus barang dari keranjang;
+        |Database|
+        :Menghapus baris keranjang belanja;
+    end split
+    
+    |Pembeli|
+    :Melihat keranjang terupdate;
+    stop
+else (tidak)
+    |Sistem|
+    :Menampilkan alert "Stok Tidak Mencukupi";
+    |Pembeli|
+    :Mengurangi jumlah kuantitas belanja;
+    stop
+endif
+@enduml

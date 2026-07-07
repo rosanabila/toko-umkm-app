@@ -1,0 +1,44 @@
+@startuml Sequence Diagram - Moderasi Pengajuan Retur
+autonumber
+
+actor "Admin Sistem" as User
+boundary "ReturnsView (Blade)" as View
+control "Router (web.php)" as Router
+control "AdminController" as Controller
+entity "OrderReturn (Model)" as ReturnModel
+entity "OrderHistory (Model)" as HistoryModel
+database "Database (MySQL)" as DB
+
+User -> View : Tulis catatan admin & klik "Setujui" / "Tolak"
+View -> Router : POST /admin/returns/{id}/moderate (status, notes)
+Router -> Controller : moderateReturn(Request, id)
+
+activate Controller
+Controller -> Controller : Validasi input catatan & status (approved/rejected)
+
+alt Validasi Input Gagal
+    Controller --> View : Redirect back dengan error validasi
+    View --> User : Tampilkan error di input form
+else Validasi Input Sukses
+    Controller -> DB : DB::beginTransaction()
+    
+    Controller -> ReturnModel : Update status komplain & notes
+    activate ReturnModel
+    ReturnModel -> DB : UPDATE order_returns SET status = ?, admin_notes = ? WHERE id = ?
+    DB --> ReturnModel : Success
+    deactivate ReturnModel
+    
+    Controller -> HistoryModel : Catat keputusan moderasi retur
+    activate HistoryModel
+    HistoryModel -> DB : INSERT INTO order_histories (status: returned, notes: 'Retur [status] oleh Admin')
+    deactivate HistoryModel
+    
+    Controller -> DB : DB::commit()
+    
+    Controller --> Router : Redirect back dengan pesan sukses moderasi
+    deactivate Controller
+    
+    Router --> User : Tampilkan halaman daftar retur terupdate
+end
+
+@enduml

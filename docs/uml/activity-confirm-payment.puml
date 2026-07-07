@@ -1,0 +1,29 @@
+@startuml Activity Diagram - Verifikasi Pembayaran Manual
+|Penjual|
+start
+:Membuka Dashboard Penjual;
+:Membuka menu "Pesanan Masuk";
+:Memilih pesanan dengan status pending bayar\nyang memiliki lampiran bukti pembayaran;
+:Membuka detail pesanan dan klik gambar bukti transfer;
+:Melakukan pengecekan mutasi saldo bank secara manual;
+
+if (Dana transfer sudah masuk?) then (ya)
+    :Menekan tombol "Konfirmasi Pembayaran Valid";
+    |Sistem|
+    |Database|
+    :Memperbarui status pembayaran di tabel payments (status: confirmed);
+    :Memperbarui status pesanan di tabel orders (status: processing);
+    :Mencatat konfirmator (user_id) & waktu konfirmasi;
+    :Mencatat log riwayat status di order_histories;
+    
+    |Sistem|
+    :Menampilkan alert sukses konfirmasi;
+    |Penjual|
+    :Melihat status pesanan berubah menjadi "Diproses";
+    :Mulai menyiapkan pengemasan barang belanjaan;
+    stop
+else (tidak)
+    :Menghubungi pembeli / menolak transaksi secara manual;
+    stop
+endif
+@enduml

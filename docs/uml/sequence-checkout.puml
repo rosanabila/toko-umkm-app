@@ -1,0 +1,84 @@
+@startuml Sequence Diagram - Checkout Pesanan
+autonumber
+
+actor "Pembeli (Buyer)" as User
+boundary "CheckoutView (Blade)" as View
+control "Router (web.php)" as Router
+control "CartController" as Controller
+control "OrderService" as Service
+entity "Voucher (Model)" as VoucherModel
+entity "Order / Item (Model)" as OrderModel
+entity "Product (Model)" as ProdModel
+entity "Payment / History (Model)" as PayModel
+database "Database (MySQL)" as DB
+
+User -> View : Isi data pengiriman, pilih kurir, klik "Buat Pesanan"
+View -> Router : POST /checkout/process (form data)
+Router -> Controller : processCheckout(Request)
+
+activate Controller
+Controller -> Controller : Validasi input form (alamat, kurir, dll)
+
+alt Form Validasi Gagal
+    Controller --> View : Redirect back dengan errors
+    View --> User : Tampilkan error formulir
+else Form Validasi Sukses
+    Controller -> Controller : Periksa applied voucher di session
+    
+    alt Ada Kode Voucher Terpilih
+        Controller -> VoucherModel : Find voucher & hitung diskon
+        activate VoucherModel
+        VoucherModel -> DB : SELECT * FROM vouchers WHERE code = ?
+        DB --> VoucherModel : Voucher record
+        deactivate VoucherModel
+        Controller -> Controller : Hitung potongan diskon ($discount)
+    end
+    
+    Controller -> Controller : Hitung total bayar (Subtotal - Diskon + Ongkir)
+    
+    Controller -> DB : DB::beginTransaction()
+    
+    Controller -> Service : createOrder(checkoutData)
+    activate Service
+    Service -> OrderModel : Order::create(orderData)
+    activate OrderModel
+    OrderModel -> DB : INSERT INTO orders (status: pending)
+    DB --> OrderModel : Order ID
+    deactivate OrderModel
+    Service --> Controller : Order ID
+    deactivate Service
+    
+    loop Per Item Keranjang Toko
+        Controller -> OrderModel : OrderItem::create(itemData)
+        activate OrderModel
+        OrderModel -> DB : INSERT INTO order_items
+        deactivate OrderModel
+        
+        Controller -> ProdModel : Potong stok produk/varian
+        activate ProdModel
+        ProdModel -> DB : UPDATE products SET stock = stock - $qty
+        deactivate ProdModel
+    end
+    
+    Controller -> PayModel : Payment::create(pendingPayment)
+    activate PayModel
+    PayModel -> DB : INSERT INTO payments (status: pending)
+    deactivate PayModel
+    
+    Controller -> PayModel : OrderHistory::create(logData)
+    activate PayModel
+    PayModel -> DB : INSERT INTO order_histories
+    deactivate PayModel
+    
+    Controller -> DB : Hapus items dari tabel carts
+    Controller -> DB : DB::commit()
+    
+    Controller -> Controller : Hapus voucher di session
+    
+    Controller --> Router : Redirect to /buyer/order/{id}
+    deactivate Controller
+    
+    Router --> User : Tampilkan Detail Order & instruksi transfer bank
+end
+
+@enduml

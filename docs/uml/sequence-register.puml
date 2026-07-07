@@ -1,0 +1,48 @@
+@startuml Sequence Diagram - Registrasi Akun
+autonumber
+
+actor "Pengunjung (Guest)" as User
+boundary "RegisterView (Blade)" as View
+control "Router (web.php)" as Router
+control "AuthController" as Controller
+entity "User (Model)" as UserModel
+entity "Store (Model)" as StoreModel
+database "Database (MySQL)" as DB
+
+User -> View : Akses halaman register
+View -> Router : GET /register
+Router -> Controller : showRegister()
+Controller --> View : Tampilkan form pendaftaran
+User -> View : Isi form & klik "Daftar"
+View -> Router : POST /register (form data)
+Router -> Controller : register(Request)
+
+activate Controller
+Controller -> Controller : Validasi input form (name, email, password, role)
+
+alt Input Validasi Gagal
+    Controller --> View : Redirect back dengan $errors
+    View --> User : Tampilkan pesan error di form
+else Input Validasi Sukses
+    Controller -> UserModel : User::create(data)
+    activate UserModel
+    UserModel -> DB : INSERT INTO users
+    DB --> UserModel : ID Pengguna baru
+    deactivate UserModel
+    
+    alt Role Pengguna = 'penjual'
+        Controller -> StoreModel : $user->store()->create(defaultData)
+        activate StoreModel
+        StoreModel -> DB : INSERT INTO stores
+        DB --> StoreModel : ID Toko baru
+        deactivate StoreModel
+    end
+    
+    Controller -> Controller : Auth::login($user)
+    Controller --> Router : Redirect to / (pembeli) atau /seller/dashboard (penjual)
+    deactivate Controller
+    
+    Router --> User : Tampilkan Halaman Utama / Dashboard Toko
+end
+
+@enduml

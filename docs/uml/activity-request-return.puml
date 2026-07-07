@@ -1,0 +1,31 @@
+@startuml Activity Diagram - Ajukan Retur Komplain
+|Pembeli|
+start
+:Membuka halaman "Pesanan Saya";
+:Memilih pesanan yang telah dikirim (shipped) atau selesai (completed);
+:Mengisi formulir pengajuan retur\n(Alasan detail barang rusak/tidak cocok);
+:Mengunggah file foto bukti kerusakan barang;
+:Menekan tombol "Kirim Pengajuan Retur";
+
+|Sistem|
+:Validasi input form dan file bukti gambar;
+if (Validasi Sukses?) then (ya)
+    :Menyimpan file foto komplain ke folder /uploads/returns;
+    |Database|
+    :Membuat baris data baru di tabel order_returns (status: pending);
+    :Memperbarui status pesanan di tabel orders (status: returned);
+    :Mencatat log kronologi di order_histories;
+    
+    |Sistem|
+    :Menampilkan alert sukses;
+    |Pembeli|
+    :Melihat status berubah menjadi "RETUR" dan menunggu peninjauan Admin;
+    stop
+else (tidak)
+    |Sistem|
+    :Mengembalikan error validasi;
+    |Pembeli|
+    :Memperbaiki form/mengunggah ulang foto bukti;
+    goto :Mengisi formulir pengajuan retur\n(Alasan detail barang rusak/tidak cocok);
+endif
+@enduml

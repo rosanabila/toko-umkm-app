@@ -1,0 +1,36 @@
+@startuml Activity Diagram - Moderasi Pengajuan Retur
+|Admin Sistem|
+start
+:Membuka panel admin;
+:Membuka menu "Retur Barang";
+:Memilih berkas pengajuan retur berstatus pending;
+:Membaca alasan komplain pembeli & meninjau foto bukti kerusakan;
+:Mengisi kolom catatan keputusan admin (admin_notes);
+
+if (Komplain retur valid & disetujui?) then (ya)
+    :Menekan tombol "Setujui Komplain";
+    |Sistem|
+    |Database|
+    :Memperbarui status di tabel order_returns (status: approved);
+    :Mencatat log keputusan disetujui di order_histories;
+    
+    |Sistem|
+    :Menampilkan alert sukses persetujuan;
+    |Admin Sistem|
+    :Pesanan berhasil disetujui untuk dikembalikan (dana/barang);
+    stop
+else (tidak)
+    |Admin Sistem|
+    :Menekan tombol "Tolak Komplain";
+    |Sistem|
+    |Database|
+    :Memperbarui status di tabel order_returns (status: rejected);
+    :Mencatat log penolakan di order_histories;
+    
+    |Sistem|
+    :Menampilkan alert penolakan;
+    |Admin Sistem|
+    :Selesai memproses penolakan komplain;
+    stop
+endif
+@enduml

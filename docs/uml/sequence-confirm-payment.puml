@@ -1,0 +1,53 @@
+@startuml Sequence Diagram - Verifikasi Pembayaran Manual
+autonumber
+
+actor "Penjual (Seller)" as User
+boundary "OrderDetailView (Blade)" as View
+control "Router (web.php)" as Router
+control "SellerController" as Controller
+entity "Payment (Model)" as PayModel
+entity "Order (Model)" as OrderModel
+entity "OrderHistory (Model)" as HistoryModel
+database "Database (MySQL)" as DB
+
+User -> View : Periksa bukti transfer & klik "Konfirmasi Pembayaran"
+View -> Router : POST /seller/order/{id}/confirm-payment
+Router -> Controller : confirmPayment(Request, id)
+
+activate Controller
+Controller -> OrderModel : Periksa status order saat ini
+activate OrderModel
+OrderModel -> DB : SELECT status FROM orders WHERE id = ?
+DB --> OrderModel : Order status (must be pending)
+deactivate OrderModel
+
+alt Status Order Bukan 'pending' / Transaksi Tidak Valid
+    Controller --> View : Redirect back dengan pesan error
+    View --> User : Tampilkan alert kesalahan status
+else Status Order Valid ('pending')
+    Controller -> DB : DB::beginTransaction()
+    
+    Controller -> PayModel : Konfirmasi status pembayaran
+    activate PayModel
+    PayModel -> DB : UPDATE payments SET status = 'confirmed', confirmed_at = ?, confirmed_by = ?
+    deactivate PayModel
+    
+    Controller -> OrderModel : Ubah status pesanan menjadi diproses
+    activate OrderModel
+    OrderModel -> DB : UPDATE orders SET status = 'processing'
+    deactivate OrderModel
+    
+    Controller -> HistoryModel : Catat riwayat status baru
+    activate HistoryModel
+    HistoryModel -> DB : INSERT INTO order_histories (status: processing)
+    deactivate HistoryModel
+    
+    Controller -> DB : DB::commit()
+    
+    Controller --> Router : Redirect back dengan pesan sukses konfirmasi
+    deactivate Controller
+    
+    Router --> User : Tampilkan halaman detail dengan status terupdate: DIPROSES
+end
+
+@enduml

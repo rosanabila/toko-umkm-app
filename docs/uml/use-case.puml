@@ -1,0 +1,108 @@
+@startuml TokoKita Use Case Diagram
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+' Define Actors
+actor "Pengunjung (Guest)" as guest
+actor "Pembeli (Buyer)" as buyer
+actor "Penjual (Seller)" as seller
+actor "Admin Sistem" as admin
+
+' Inheritances
+buyer --|> guest
+seller --|> guest
+
+rectangle "Sistem E-Commerce TokoKita" {
+    
+    ' Guest Use Cases
+    usecase "Registrasi Akun" as UC_Register
+    usecase "Login Akun" as UC_Login
+    usecase "Jelajahi Katalog Produk" as UC_Browse
+    usecase "Cari & Filter Produk" as UC_SearchFilter
+    usecase "Lihat Detail Produk & Varian" as UC_ProductDetail
+    usecase "Lihat Profil Toko UMKM" as UC_ViewStore
+
+    ' Buyer Use Cases
+    usecase "Kelola Keranjang Belanja" as UC_Cart
+    usecase "Klaim Voucher Belanja" as UC_ClaimVoucher
+    usecase "Checkout Pesanan\n(Pilih Kurir & Alamat)" as UC_Checkout
+    usecase "Unggah Bukti Pembayaran" as UC_UploadReceipt
+    usecase "Pantau Status Pengiriman" as UC_TrackOrder
+    usecase "Ajukan Retur Komplain" as UC_RequestReturn
+    usecase "Beri Rating & Ulasan Produk" as UC_AddReview
+    usecase "Cetak Invoice Pesanan (PDF)" as UC_InvoicePdf
+
+    ' Seller Use Cases
+    usecase "Kelola Profil Toko\n& Jam Operasional" as UC_StoreProfile
+    usecase "Kelola Produk & Kategori" as UC_ManageProducts
+    usecase "Kelola Varian Harga & Stok" as UC_ManageVariants
+    usecase "Kelola Voucher Diskon Toko" as UC_ManageVouchers
+    usecase "Kelola Pesanan Masuk" as UC_ManageOrders
+    usecase "Verifikasi Pembayaran Manual" as UC_ConfirmPayment
+    usecase "Input Resi Pengiriman" as UC_InputResi
+    usecase "Cetak Surat Jalan (PDF)" as UC_DeliveryNotePdf
+    usecase "Cetak Laporan Stok (PDF)" as UC_StockPdf
+    usecase "Ekspor Rekap Penjualan (CSV)" as UC_SalesCsv
+    usecase "Ekspor Data Pesanan (CSV)" as UC_OrdersCsv
+    usecase "Pantau KPI & Grafik Toko" as UC_SellerDashboard
+
+    ' Admin Use Cases
+    usecase "Kelola Akun & Role User" as UC_ManageUsers
+    usecase "Moderasi Konten Ulasan" as UC_ModerateReviews
+    usecase "Moderasi Pengajuan Retur" as UC_ModerateReturns
+    usecase "Pantau KPI & Grafik Global" as UC_AdminDashboard
+    
+    ' Common
+    usecase "Logout Akun" as UC_Logout
+}
+
+' Guest Links
+guest --> UC_Register
+guest --> UC_Login
+guest --> UC_Browse
+guest --> UC_SearchFilter
+guest --> UC_ProductDetail
+guest --> UC_ViewStore
+
+' Buyer Links
+buyer --> UC_Cart
+buyer --> UC_ClaimVoucher
+buyer --> UC_Checkout
+buyer --> UC_UploadReceipt
+buyer --> UC_TrackOrder
+buyer --> UC_RequestReturn
+buyer --> UC_AddReview
+buyer --> UC_InvoicePdf
+buyer --> UC_Logout
+
+' Seller Links
+seller --> UC_StoreProfile
+seller --> UC_ManageProducts
+seller --> UC_ManageVariants
+seller --> UC_ManageVouchers
+seller --> UC_ManageOrders
+seller --> UC_ConfirmPayment
+seller --> UC_InputResi
+seller --> UC_DeliveryNotePdf
+seller --> UC_StockPdf
+seller --> UC_SalesCsv
+seller --> UC_OrdersCsv
+seller --> UC_SellerDashboard
+seller --> UC_Logout
+
+' Admin Links
+admin --> UC_ManageUsers
+admin --> UC_ModerateReviews
+admin --> UC_ModerateReturns
+admin --> UC_AdminDashboard
+admin --> UC_Logout
+
+' Extend/Include Relationships (Optional visual layout helpers)
+UC_SearchFilter ..> UC_Browse : <<extend>>
+UC_ProductDetail ..> UC_Browse : <<extend>>
+UC_ConfirmPayment ..> UC_ManageOrders : <<include>>
+UC_InputResi ..> UC_ManageOrders : <<include>>
+UC_ManageVariants ..> UC_ManageProducts : <<include>>
+
+@enduml

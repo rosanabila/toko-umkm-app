@@ -1,0 +1,31 @@
+@startuml Activity Diagram - Registrasi Akun
+|Pengunjung|
+start
+:Mengakses halaman pendaftaran;
+:Mengisi formulir pendaftaran\n(Nama, Email, WhatsApp, Password, Role);
+:Menekan tombol "Daftar Akun";
+
+|Sistem|
+:Melakukan validasi input formulir;
+if (Validasi Sukses?) then (ya)
+    |Database|
+    :Menyimpan data pengguna baru\n(default role: pembeli/penjual);
+    if (Role yang dipilih = Penjual?) then (ya)
+        :Membuat draf template profil toko\n(stores table template);
+    else (tidak)
+    endif
+    
+    |Sistem|
+    :Membuat sesi login otomatis;
+    :Mengarahkan ke halaman Dashboard (Penjual)\natau Home/Katalog (Pembeli);
+    |Pengunjung|
+    :Menerima pesan sukses & masuk ke sistem;
+    stop
+else (tidak)
+    |Sistem|
+    :Mengembalikan error ke formulir;
+    |Pengunjung|
+    :Melihat notifikasi kesalahan input;
+    goto :Mengisi formulir pendaftaran\n(Nama, Email, WhatsApp, Password, Role);
+endif
+@enduml

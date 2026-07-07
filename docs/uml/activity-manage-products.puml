@@ -1,0 +1,49 @@
+@startuml Activity Diagram - Kelola Produk & Varian
+|Penjual|
+start
+:Membuka menu "Produk Toko";
+:Menekan tombol "Tambah Produk";
+:Mengisi nama, kategori, harga base, diskon, dan deskripsi;
+:Mengunggah file foto produk;
+
+if (Ingin menambahkan Varian?) then (ya)
+    repeat
+        :Menekan tombol "Tambah Baris Varian";
+        :Mengisi nama varian (misal: Merah, Size L);
+        :Mengisi tambahan harga & jumlah stok varian;
+    repeat while (Ada varian lain?)
+else (tidak)
+    :Mengisi jumlah stok utama;
+endif
+
+:Menekan tombol "Simpan Produk";
+
+|Sistem|
+:Melakukan validasi input form dan gambar;
+if (Validasi Sukses?) then (ya)
+    :Membuat slug produk otomatis (URL-friendly);
+    if (Ada file gambar?) then (ya)
+        :Menyimpan foto produk ke folder /uploads/products;
+    else (tidak)
+    endif
+    
+    |Database|
+    :Menyimpan produk dasar ke tabel products;
+    if (Varian ditambahkan?) then (ya)
+        :Menyimpan rincian varian ke tabel product_variants;
+    else (tidak)
+    endif
+    
+    |Sistem|
+    :Mengarahkan kembali ke daftar produk dengan pesan sukses;
+    |Penjual|
+    :Melihat produk baru terdaftar di tabel katalog;
+    stop
+else (tidak)
+    |Sistem|
+    :Mengembalikan error validasi input;
+    |Penjual|
+    :Memperbaiki input data produk;
+    goto :Mengisi nama, kategori, harga base, diskon, dan deskripsi;
+endif
+@enduml

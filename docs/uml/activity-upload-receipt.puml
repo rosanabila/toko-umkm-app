@@ -1,0 +1,31 @@
+@startuml Activity Diagram - Unggah Bukti Pembayaran
+|Pembeli|
+start
+:Membuka detail pesanan berstatus pending;
+:Membaca petunjuk transfer bank;
+:Melakukan transfer dana ke rekening TokoKita;
+:Memilih bank tujuan transfer;
+:Mengunggah file foto bukti transfer pembayaran;
+:Menekan tombol "Kirim Bukti Pembayaran";
+
+|Sistem|
+:Validasi file (format gambar, kapasitas max 2MB);
+if (Validasi Sukses?) then (ya)
+    :Menyimpan file gambar bukti transfer ke folder /uploads/receipts;
+    |Database|
+    :Memperbarui status tabel payments (receipt path, status: pending);
+    :Mencatat log riwayat di order_histories;
+    
+    |Sistem|
+    :Menampilkan alert sukses;
+    |Pembeli|
+    :Melihat status pesanan berubah menjadi menunggu verifikasi;
+    stop
+else (tidak)
+    |Sistem|
+    :Mengembalikan error validasi file gambar;
+    |Pembeli|
+    :Mengunggah ulang file bukti transfer yang benar;
+    goto :Memilih bank tujuan transfer;
+endif
+@enduml
