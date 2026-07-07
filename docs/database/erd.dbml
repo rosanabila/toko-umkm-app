@@ -1,0 +1,199 @@
+// DBML (Database Markup Language) untuk TokoKita (E-Commerce UMKM)
+// Gunakan berkas ini di dbdiagram.io untuk merender diagram ERD interaktif.
+
+Table users {
+  id integer [primary key, increment]
+  name varchar
+  email varchar [unique]
+  phone varchar
+  password varchar
+  role varchar // admin, penjual, pembeli
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table stores {
+  id integer [primary key, increment]
+  user_id integer [unique]
+  name varchar
+  slug varchar [unique]
+  description text
+  logo varchar
+  address text
+  operating_hours varchar
+  shipping_area text
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table categories {
+  id integer [primary key, increment]
+  name varchar
+  slug varchar [unique]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table category_product {
+  id integer [primary key, increment]
+  product_id integer
+  category_id integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table products {
+  id integer [primary key, increment]
+  store_id integer
+  name varchar
+  slug varchar [unique]
+  description text
+  price decimal
+  discount integer
+  stock integer
+  image varchar
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table product_variants {
+  id integer [primary key, increment]
+  product_id integer
+  name varchar
+  price_adjustment decimal
+  stock integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table vouchers {
+  id integer [primary key, increment]
+  store_id integer [null] // Null if global voucher
+  code varchar [unique]
+  type varchar // fixed, percent
+  value decimal
+  min_spend decimal
+  start_date date
+  end_date date
+  active boolean
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table carts {
+  id integer [primary key, increment]
+  user_id integer
+  product_id integer
+  product_variant_id integer [null]
+  quantity integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table orders {
+  id integer [primary key, increment]
+  buyer_id integer
+  store_id integer
+  voucher_id integer [null]
+  order_number varchar [unique]
+  total_price decimal
+  discount_amount decimal
+  shipping_cost decimal
+  grand_total decimal
+  status varchar // pending, processing, shipped, completed, cancelled, returned
+  shipping_address text
+  shipping_courier varchar
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table order_items {
+  id integer [primary key, increment]
+  order_id integer
+  product_id integer
+  product_variant_id integer [null]
+  quantity integer
+  price decimal
+  discount integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table payments {
+  id integer [primary key, increment]
+  order_id integer [unique]
+  payment_method varchar
+  amount decimal
+  payment_receipt varchar
+  status varchar // pending, confirmed, failed, refunded
+  confirmed_at timestamp [null]
+  confirmed_by integer [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table reviews {
+  id integer [primary key, increment]
+  order_item_id integer [unique]
+  product_id integer
+  user_id integer
+  rating integer
+  comment text
+  is_moderated boolean [default: false]
+  moderation_notes text [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table order_histories {
+  id integer [primary key, increment]
+  order_id integer
+  status varchar
+  notes text
+  created_at timestamp
+}
+
+Table order_returns {
+  id integer [primary key, increment]
+  order_id integer
+  reason text
+  evidence_image varchar
+  status varchar // pending, approved, rejected
+  admin_notes text [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Relationships & Foreign Keys
+Ref: stores.user_id - users.id [delete: cascade] // One-to-One
+Ref: products.store_id > stores.id [delete: cascade]
+Ref: category_product.product_id > products.id [delete: cascade]
+Ref: category_product.category_id > categories.id [delete: cascade]
+Ref: product_variants.product_id > products.id [delete: cascade]
+Ref: vouchers.store_id > stores.id [delete: cascade]
+
+Ref: carts.user_id > users.id [delete: cascade]
+Ref: carts.product_id > products.id [delete: cascade]
+Ref: carts.product_variant_id > product_variants.id [delete: cascade]
+
+Ref: orders.buyer_id > users.id [delete: restrict]
+Ref: orders.store_id > stores.id [delete: restrict]
+Ref: orders.voucher_id > vouchers.id [delete: set null]
+
+Ref: order_items.order_id > orders.id [delete: cascade]
+Ref: order_items.product_id > products.id [delete: restrict]
+Ref: order_items.product_variant_id > product_variants.id [delete: set null]
+
+Ref: payments.order_id - orders.id [delete: cascade] // One-to-One
+Ref: payments.confirmed_by > users.id [delete: set null]
+
+Ref: reviews.order_item_id - order_items.id [delete: cascade] // One-to-One
+Ref: reviews.product_id > products.id [delete: cascade]
+Ref: reviews.user_id > users.id [delete: cascade]
+
+Ref: order_histories.order_id > orders.id [delete: cascade]
+Ref: order_returns.order_id > orders.id [delete: cascade]
