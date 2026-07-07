@@ -52,4 +52,12 @@ try {
     printf("%-24s : ERROR (%s)\n", 'daily_sales_summaries', $e->getMessage());
 }
 
+// Check wishlists table count
+try {
+    $wishlistsCount = \DB::table('wishlists')->count();
+    printf("%-24s : %d records\n", 'wishlists', $wishlistsCount);
+} catch (\Exception $e) {
+    printf("%-24s : ERROR (%s)\n", 'wishlists', $e->getMessage());
+}
+
 echo "====================================\n";

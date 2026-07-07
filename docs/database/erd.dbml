@@ -198,6 +198,18 @@ Table daily_sales_summaries {
   }
 }
 
+Table wishlists {
+  id integer [primary key, increment]
+  user_id integer
+  product_id integer
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (user_id, product_id) [unique]
+  }
+}
+
 // Relationships & Foreign Keys
 Ref: stores.user_id - users.id [delete: cascade] // One-to-One
 Ref: products.store_id > stores.id [delete: cascade]
@@ -228,3 +240,6 @@ Ref: reviews.user_id > users.id [delete: cascade]
 Ref: order_histories.order_id > orders.id [delete: cascade]
 Ref: order_returns.order_id > orders.id [delete: cascade]
 Ref: daily_sales_summaries.store_id > stores.id [delete: cascade]
+
+Ref: wishlists.user_id > users.id [delete: cascade]
+Ref: wishlists.product_id > products.id [delete: cascade]

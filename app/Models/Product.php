@@ -50,6 +50,11 @@ class Product extends Model
         return $this->hasMany(OrderItem::class, 'product_id');
     }
 
+    public function wishlistUsers()
+    {
+        return $this->belongsToMany(User::class, 'wishlists', 'product_id', 'user_id')->withTimestamps();
+    }
+
     // Dynamic Attribute: Discounted Price
     public function getDiscountedPriceAttribute()
     {

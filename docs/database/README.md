@@ -6,7 +6,7 @@ Berkas ini mendokumentasikan skema relasi antar tabel (ERD) untuk aplikasi **Tok
 
 ## 1. Daftar Tabel & Peran Bisnis
 
-Database MySQL TokoKita mengintegrasikan 13 tabel relasional inti yang membagi data transaksional, data katalog, dan data pengguna:
+Database MySQL TokoKita mengintegrasikan 15 tabel relasional inti yang membagi data transaksional, data katalog, dan data pengguna:
 
 1. **`users`**: Menyimpan kredensial login (Email & Password), WhatsApp, dan pengelompokan tingkat hak akses pengguna (`admin`, `penjual`, `pembeli`).
 2. **`stores`**: Menyimpan data profil toko UMKM (Nama, alamat, operasional jam, area pengiriman). Berelasi satu-ke-satu dengan tabel `users` (penjual).
@@ -22,6 +22,7 @@ Database MySQL TokoKita mengintegrasikan 13 tabel relasional inti yang membagi d
 12. **`reviews`**: Menyimpan ulasan rating (bintang 1-5) dan komentar pembeli untuk produk yang sudah selesai dibeli.
 13. **`order_histories`**: Log linimasa pelacakan riwayat alur status pesanan belanja dari awal hingga akhir.
 14. **`order_returns`**: Pencatatan data komplain klaim barang rusak oleh pembeli (alasan, foto bukti) beserta keputusan persetujuan dari Admin.
+15. **`wishlists`**: Menyimpan daftar keinginan (Wishlist) produk oleh pembeli. Menghubungkan pengguna dengan produk dalam hubungan Banyak-ke-Banyak (N:M).
 
 ---
 
@@ -56,6 +57,8 @@ Database MySQL TokoKita mengintegrasikan 13 tabel relasional inti yang membagi d
   * *Penjelasan*: Satu pesanan memiliki riwayat status bertahap (diproses, dikirim, selesai) yang dicatat di tabel history log.
 * **`order_returns.order_id > orders.id`**
   * *Penjelasan*: Satu pesanan dikaitkan dengan pelaporan komplain retur barang rusak.
+* **`wishlists.user_id > users.id` & `wishlists.product_id > products.id`**
+  * *Penjelasan*: Menghubungkan pengguna pembeli dengan produk yang mereka sukai (Banyak-ke-Banyak). Penghapusan akun pengguna atau produk akan memicu penghapusan entri wishlist secara otomatis (*Cascade*).
 
 ---
 

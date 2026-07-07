@@ -225,6 +225,12 @@ package "Models (Eloquent ORM)" {
         +status: enum
         +admin_notes: text
     }
+
+    class Wishlist {
+        +id: int
+        +user_id: int
+        +product_id: int
+    }
 }
 
 ' Model Relationships
@@ -232,6 +238,7 @@ User "1" -- "0..1" Store : owns >
 User "1" -- "*" Cart : has >
 User "1" -- "*" Order : buys >
 User "1" -- "*" Review : writes >
+User "1" -- "*" Wishlist : saves >
 
 Store "1" -- "*" Product : sells >
 Store "1" -- "*" Voucher : issues >
@@ -243,6 +250,7 @@ Product "1" -- "*" ProductVariant : features >
 Product "1" -- "*" Cart : added_to >
 Product "1" -- "*" OrderItem : itemizes >
 Product "1" -- "*" Review : rated_by >
+Product "1" -- "*" Wishlist : wishlisted_by >
 
 ProductVariant "1" -- "*" Cart : added_to_variant >
 ProductVariant "1" -- "*" OrderItem : itemizes_variant >
