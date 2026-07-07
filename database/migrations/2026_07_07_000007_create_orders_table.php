@@ -33,6 +33,7 @@ return new class extends Migration
 
             // Composite index for reporting
             $table->index(['store_id', 'status', 'created_at'], 'idx_orders_store_status_date');
+            $table->index(['store_id', 'created_at'], 'idx_orders_store_date');
         });
     }
 

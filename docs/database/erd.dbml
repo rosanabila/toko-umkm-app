@@ -116,6 +116,7 @@ Table orders {
 
   indexes {
     (store_id, status, created_at) [name: "idx_orders_store_status_date"]
+    (store_id, created_at) [name: "idx_orders_store_date"]
   }
 }
 
