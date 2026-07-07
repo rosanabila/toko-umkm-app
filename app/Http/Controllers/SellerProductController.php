@@ -20,7 +20,7 @@ class SellerProductController extends Controller
     public function index()
     {
         $store = $this->getStore();
-        $products = Product::with(['category', 'variants'])
+        $products = Product::with(['categories', 'variants'])
             ->where('store_id', $store->id)
             ->latest()
             ->paginate(10);
@@ -67,7 +67,6 @@ class SellerProductController extends Controller
             $slug = Str::slug($request->name) . '-' . strtolower(Str::random(4));
             $product = Product::create([
                 'store_id' => $store->id,
-                'category_id' => $request->category_id,
                 'name' => $request->name,
                 'slug' => $slug,
                 'price' => $request->price,
@@ -76,6 +75,7 @@ class SellerProductController extends Controller
                 'description' => $request->description,
                 'image' => $imagePath,
             ]);
+            $product->categories()->attach($request->category_id);
 
             // Save variants if provided
             if ($request->filled('variant_name')) {
@@ -149,7 +149,6 @@ class SellerProductController extends Controller
 
             // Update product base fields
             $product->name = $request->name;
-            $product->category_id = $request->category_id;
             $product->price = $request->price;
             $product->stock = $request->stock;
             $product->discount_percent = $request->discount_percent;
@@ -158,6 +157,9 @@ class SellerProductController extends Controller
             // If name changed significantly, regenerate slug (optional, but let's update it to match new name)
             $product->slug = Str::slug($request->name) . '-' . strtolower(Str::random(4));
             $product->save();
+
+            // Sync categories pivot table
+            $product->categories()->sync([$request->category_id]);
 
             // Manage variants
             // 1. Get current variants and details

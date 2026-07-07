@@ -9,7 +9,6 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Voucher;
-use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -27,8 +26,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Users
-        $admin = User::create([
+        // 1. Create Administrator
+        User::create([
             'name' => 'Admin Sistem',
             'email' => 'admin@tokokita.com',
             'password' => Hash::make('password'),
@@ -36,12 +35,25 @@ class DatabaseSeeder extends Seeder
             'phone' => '081234567890',
         ]);
 
+        // 2. Create Sellers & Stores
         $sellerBudi = User::create([
             'name' => 'Budi Setiawan',
             'email' => 'budi@tokokita.com',
             'password' => Hash::make('password'),
             'role' => 'penjual',
-            'phone' => '082345678901',
+            'phone' => '082134567890',
+        ]);
+        $storeBudi = Store::create([
+            'user_id' => $sellerBudi->id,
+            'name' => 'Toko Buku Budi',
+            'slug' => 'toko-buku-budi',
+            'description' => 'Menyediakan aneka novel, buku pemrograman web, kamus bahasa asing, dan alat tulis sekolah lengkap dengan harga grosir.',
+            'logo' => null,
+            'address' => 'Kios Blok A No. 12, Pasar Buku Kwitang, Senen, Jakarta Pusat',
+            'phone' => '082134567890',
+            'operating_hours_open' => '08:00:00',
+            'operating_hours_close' => '18:00:00',
+            'shipping_areas' => 'Jakarta, Depok, Tangerang, Bekasi',
         ]);
 
         $sellerAni = User::create([
@@ -49,7 +61,19 @@ class DatabaseSeeder extends Seeder
             'email' => 'ani@tokokita.com',
             'password' => Hash::make('password'),
             'role' => 'penjual',
-            'phone' => '083456789012',
+            'phone' => '083123456789',
+        ]);
+        $storeAni = Store::create([
+            'user_id' => $sellerAni->id,
+            'name' => 'Ani Fashion Hub',
+            'slug' => 'ani-fashion-hub',
+            'description' => 'Supplier busana muslimah premium, hijab segi empat voal, kemeja flanel retro, dan celana chino modis untuk remaja dan dewasa.',
+            'logo' => null,
+            'address' => 'Lantai Dasar Blok B No. 34, Pasar Grosir Tanah Abang, Jakarta Pusat',
+            'phone' => '083123456789',
+            'operating_hours_open' => '09:00:00',
+            'operating_hours_close' => '17:00:00',
+            'shipping_areas' => 'Seluruh Indonesia',
         ]);
 
         $sellerDedi = User::create([
@@ -57,561 +81,486 @@ class DatabaseSeeder extends Seeder
             'email' => 'dedi@tokokita.com',
             'password' => Hash::make('password'),
             'role' => 'penjual',
-            'phone' => '084567890123',
+            'phone' => '084123456780',
         ]);
-
-        $buyerWati = User::create([
-            'name' => 'Wati Lestari',
-            'email' => 'wati@tokokita.com',
-            'password' => Hash::make('password'),
-            'role' => 'pembeli',
-            'phone' => '085678901234',
-        ]);
-
-        $buyerRudi = User::create([
-            'name' => 'Rudi Hartono',
-            'email' => 'rudi@tokokita.com',
-            'password' => Hash::make('password'),
-            'role' => 'pembeli',
-            'phone' => '086789012345',
-        ]);
-
-        $buyerSiska = User::create([
-            'name' => 'Siska Amelia',
-            'email' => 'siska@tokokita.com',
-            'password' => Hash::make('password'),
-            'role' => 'pembeli',
-            'phone' => '087890123456',
-        ]);
-
-        // 2. Stores
-        $storeBudi = Store::create([
-            'user_id' => $sellerBudi->id,
-            'name' => 'Toko Buku Budi',
-            'slug' => 'toko-buku-budi',
-            'description' => 'Menjual novel best-seller, buku pelajaran sekolah, komik, dan alat tulis terlengkap.',
-            'logo' => null,
-            'address' => 'Jl. Braga No. 102, Sumur Bandung, Kota Bandung',
-            'phone' => '082345678901',
-            'operating_hours_open' => '08:00:00',
-            'operating_hours_close' => '18:00:00',
-            'shipping_areas' => ['Bandung', 'Jakarta', 'Sumedang', 'Cimahi'],
-        ]);
-
-        $storeAni = Store::create([
-            'user_id' => $sellerAni->id,
-            'name' => 'Ani Fashion Hub',
-            'slug' => 'ani-fashion-hub',
-            'description' => 'Supplier pakaian wanita modis, busana muslimah premium, hijab segi empat, dan outer rajut berkualitas.',
-            'logo' => null,
-            'address' => 'Jl. Thamrin Boulevard No. 45, Tanah Abang, Jakarta Pusat',
-            'phone' => '083456789012',
-            'operating_hours_open' => '09:00:00',
-            'operating_hours_close' => '20:00:00',
-            'shipping_areas' => ['Jakarta', 'Depok', 'Tangerang', 'Bekasi', 'Bogor'],
-        ]);
-
         $storeDedi = Store::create([
             'user_id' => $sellerDedi->id,
             'name' => 'Dedi Elektronik',
             'slug' => 'dedi-elektronik',
-            'description' => 'Menjual aksesoris gadget, powerbank, headset wireless, kabel data fast charging, dan lampu pintar.',
+            'description' => 'Pusat aksesoris gadget, powerbank fast charging, headphone wireless, mouse silent, dan peralatan lampu pintar rumah tangga.',
             'logo' => null,
-            'address' => 'Mall ITC Roxy Mas Lt. 2 No. 8, Harmoni, Jakarta Barat',
-            'phone' => '084567890123',
+            'address' => 'Mall ITC Roxy Mas Lt. 2 Kios No. 10, Harmoni, Jakarta Barat',
+            'phone' => '084123456780',
             'operating_hours_open' => '10:00:00',
-            'operating_hours_close' => '19:00:00',
-            'shipping_areas' => ['Jakarta', 'Surabaya', 'Medan', 'Bandung'],
+            'operating_hours_close' => '20:00:00',
+            'shipping_areas' => 'Jakarta, Bogor, Depok, Tangerang, Bekasi, Bandung, Surabaya',
         ]);
 
-        // 3. Categories
+        $sellers = [$storeBudi, $storeAni, $storeDedi];
+
+        // 3. Create Buyers (10 Pembeli)
+        $buyerNames = ['Wati Astuti', 'Iwan Fals', 'Budianto Pratama', 'Citra Lestari', 'Eko Prasetyo', 'Farhan Hakim', 'Gita Gutawa', 'Hadi Wijaya', 'Indah Permata', 'Joko Susilo'];
+        $buyerEmails = ['wati@tokokita.com', 'iwan@tokokita.com', 'budianto@tokokita.com', 'citra@tokokita.com', 'eko@tokokita.com', 'farhan@tokokita.com', 'gita@tokokita.com', 'hadi@tokokita.com', 'indah@tokokita.com', 'joko@tokokita.com'];
+        $buyerPhones = ['085123456781', '085123456782', '085123456783', '085123456784', '085123456785', '085123456786', '085123456787', '085123456788', '085123456789', '085123456790'];
+        
+        $buyers = [];
+        for ($i = 0; $i < 10; $i++) {
+            $buyers[] = User::create([
+                'name' => $buyerNames[$i],
+                'email' => $buyerEmails[$i],
+                'password' => Hash::make('password'),
+                'role' => 'pembeli',
+                'phone' => $buyerPhones[$i],
+            ]);
+        }
+
+        // 4. Create Categories
         $catBuku = Category::create(['name' => 'Buku & Alat Tulis', 'slug' => 'buku-alat-tulis']);
         $catFashion = Category::create(['name' => 'Fashion & Pakaian', 'slug' => 'fashion-pakaian']);
         $catElektronik = Category::create(['name' => 'Elektronik & Gadget', 'slug' => 'elektronik-gadget']);
         $catKuliner = Category::create(['name' => 'Makanan & Minuman', 'slug' => 'makanan-minuman']);
+        $catRumah = Category::create(['name' => 'Rumah Tangga', 'slug' => 'rumah-tangga']);
 
-        // 4. Products & Variants
-        // Toko Buku Budi Products
-        $pBuku1 = Product::create([
-            'store_id' => $storeBudi->id,
-            'category_id' => $catBuku->id,
-            'name' => 'Novel Laskar Pelangi - Edisi Spesial',
-            'slug' => 'novel-laskar-pelangi-edisi-spesial',
-            'description' => 'Novel mega best-seller karya Andrea Hirata tentang perjuangan 10 anak Belitong menggapai mimpi sekolah.',
-            'image' => null,
-            'price' => 85000.00,
-            'stock' => 50,
-            'discount_percent' => 10.00, // Rp 76.500
-        ]);
-        ProductVariant::create(['product_id' => $pBuku1->id, 'name' => 'Hard Cover', 'additional_price' => 20000.00, 'stock' => 15]);
-        ProductVariant::create(['product_id' => $pBuku1->id, 'name' => 'Soft Cover', 'additional_price' => 0.00, 'stock' => 35]);
-
-        $pBuku2 = Product::create([
-            'store_id' => $storeBudi->id,
-            'category_id' => $catBuku->id,
-            'name' => 'Buku Pemrograman Web dengan Laravel 10',
-            'slug' => 'buku-pemrograman-web-dengan-laravel-10',
-            'description' => 'Panduan praktis membangun aplikasi web modern berskala enterprise dari awal menggunakan framework Laravel 10.',
-            'image' => null,
-            'price' => 120000.00,
-            'stock' => 30,
-            'discount_percent' => 0.00,
-        ]);
-        ProductVariant::create(['product_id' => $pBuku2->id, 'name' => 'Buku Cetak', 'additional_price' => 0.00, 'stock' => 20]);
-        ProductVariant::create(['product_id' => $pBuku2->id, 'name' => 'Paket + E-Book PDF', 'additional_price' => 30000.00, 'stock' => 10]);
-
-        $pBuku3 = Product::create([
-            'store_id' => $storeBudi->id,
-            'category_id' => $catBuku->id,
-            'name' => 'Alat Tulis Sekolah Set Lengkap',
-            'slug' => 'alat-tulis-sekolah-set-lengkap',
-            'description' => 'Paket alat tulis isi pensil 2B, pulpen hitam, penghapus, penggaris, dan kotak pensil anak.',
-            'image' => null,
-            'price' => 25000.00,
-            'stock' => 100,
-            'discount_percent' => 5.00, // Rp 23.750
-        ]);
-
-        // Toko Ani Fashion Hub Products
-        $pFashion1 = Product::create([
-            'store_id' => $storeAni->id,
-            'category_id' => $catFashion->id,
-            'name' => 'Hijab Segi Empat Voal Premium',
-            'slug' => 'hijab-segi-empat-voal-premium',
-            'description' => 'Hijab voal premium berukuran 115x115 cm. Bahan tegak di dahi, tidak terawang, adem, dan sangat lembut.',
-            'image' => null,
-            'price' => 45000.00,
-            'stock' => 150,
-            'discount_percent' => 15.00, // Rp 38.250
-        ]);
-        ProductVariant::create(['product_id' => $pFashion1->id, 'name' => 'Hitam', 'additional_price' => 0.00, 'stock' => 50]);
-        ProductVariant::create(['product_id' => $pFashion1->id, 'name' => 'Milo (Cokelat Muda)', 'additional_price' => 0.00, 'stock' => 50]);
-        ProductVariant::create(['product_id' => $pFashion1->id, 'name' => 'Navy (Biru Dongker)', 'additional_price' => 0.00, 'stock' => 50]);
-
-        $pFashion2 = Product::create([
-            'store_id' => $storeAni->id,
-            'category_id' => $catFashion->id,
-            'name' => 'Kemeja Flanel Unisex Retro Style',
-            'slug' => 'kemeja-flanel-unisex-retro-style',
-            'description' => 'Kemeja flanel lengan panjang berbahan katun flanel tebal bertekstur lembut dengan motif kotak-kotak klasik.',
-            'image' => null,
-            'price' => 135000.00,
-            'stock' => 40,
-            'discount_percent' => 0.00,
-        ]);
-        ProductVariant::create(['product_id' => $pFashion2->id, 'name' => 'Merah-Hitam (M)', 'additional_price' => 0.00, 'stock' => 15]);
-        ProductVariant::create(['product_id' => $pFashion2->id, 'name' => 'Merah-Hitam (L)', 'additional_price' => 0.00, 'stock' => 15]);
-        ProductVariant::create(['product_id' => $pFashion2->id, 'name' => 'Hijau-Hitam (L)', 'additional_price' => 5000.00, 'stock' => 10]);
-
-        // Toko Dedi Elektronik Products
-        $pElek1 = Product::create([
-            'store_id' => $storeDedi->id,
-            'category_id' => $catElektronik->id,
-            'name' => 'Powerbank 10000mAh Fast Charge 22.5W',
-            'slug' => 'powerbank-10000mah-fast-charge-225w',
-            'description' => 'Powerbank slim dual-output USB + Type-C Power Delivery. Mendukung pengisian super cepat untuk Android & iPhone.',
-            'image' => null,
-            'price' => 189000.00,
-            'stock' => 25,
-            'discount_percent' => 20.00, // Rp 151.200
-        ]);
-
-        $pElek2 = Product::create([
-            'store_id' => $storeDedi->id,
-            'category_id' => $catElektronik->id,
-            'name' => 'TWS Bluetooth Earphones Hi-Fi Sound',
-            'slug' => 'tws-bluetooth-earphones-hi-fi-sound',
-            'description' => 'True Wireless Stereo dengan bluetooth 5.3, latensi rendah untuk gaming, daya tahan baterai 6 jam, suara bass mantap.',
-            'image' => null,
-            'price' => 250000.00,
-            'stock' => 15,
-            'discount_percent' => 0.00,
-        ]);
-
-        // 5. Vouchers
-        // Global admin voucher
+        // 5. Create Vouchers
         Voucher::create([
             'store_id' => null,
             'code' => 'DISKONSEPULUH',
             'type' => 'percent',
             'value' => 10.00,
             'min_spend' => 50000.00,
-            'start_date' => Carbon::now()->subDays(10)->format('Y-m-d'),
-            'end_date' => Carbon::now()->addDays(20)->format('Y-m-d'),
+            'start_date' => Carbon::now()->subDays(15)->format('Y-m-d'),
+            'end_date' => Carbon::now()->addDays(30)->format('Y-m-d'),
             'active' => true,
         ]);
-
-        // Toko Buku Budi voucher
-        Voucher::create([
+        $voucherBudi = Voucher::create([
             'store_id' => $storeBudi->id,
             'code' => 'BUDIBUKU5K',
             'type' => 'fixed',
             'value' => 5000.00,
-            'min_spend' => 30000.00,
-            'start_date' => Carbon::now()->subDays(10)->format('Y-m-d'),
-            'end_date' => Carbon::now()->addDays(20)->format('Y-m-d'),
+            'min_spend' => 40000.00,
+            'start_date' => Carbon::now()->subDays(15)->format('Y-m-d'),
+            'end_date' => Carbon::now()->addDays(30)->format('Y-m-d'),
             'active' => true,
         ]);
-
-        // Ani Fashion Hub voucher
-        Voucher::create([
+        $voucherAni = Voucher::create([
             'store_id' => $storeAni->id,
             'code' => 'ANIFASHION20K',
             'type' => 'fixed',
             'value' => 20000.00,
             'min_spend' => 100000.00,
-            'start_date' => Carbon::now()->subDays(5)->format('Y-m-d'),
-            'end_date' => Carbon::now()->addDays(15)->format('Y-m-d'),
+            'start_date' => Carbon::now()->subDays(15)->format('Y-m-d'),
+            'end_date' => Carbon::now()->addDays(30)->format('Y-m-d'),
+            'active' => true,
+        ]);
+        $voucherDedi = Voucher::create([
+            'store_id' => $storeDedi->id,
+            'code' => 'DEDIELEK15K',
+            'type' => 'fixed',
+            'value' => 15000.00,
+            'min_spend' => 80000.00,
+            'start_date' => Carbon::now()->subDays(15)->format('Y-m-d'),
+            'end_date' => Carbon::now()->addDays(30)->format('Y-m-d'),
             'active' => true,
         ]);
 
-        // 6. Carts
-        Cart::create([
-            'user_id' => $buyerWati->id,
-            'product_id' => $pBuku1->id,
-            'product_variant_id' => $pBuku1->variants->first()->id, // Hard Cover
-            'quantity' => 1,
-        ]);
+        // 6. Create 50 Products (distributed across stores & categories)
+        // Products definition lists
+        $books = [
+            'Novel Laskar Pelangi' => 85000.00, 'Buku Pemrograman Web Laravel 10' => 125000.00,
+            'Komik Si Juki Edisi Lebaran' => 45000.00, 'Kamus Lengkap Inggris Indonesia' => 75000.00,
+            'Paket Alat Tulis Sekolah Lengkap' => 25000.00, 'Pensil Warna Joyko 24 Warna' => 38000.00,
+            'Buku Gambar Kiky Ukuran A3' => 12000.00, 'Buku Tulis Sinar Dunia 58 Lembar' => 42000.00,
+            'Rautan Pensil Putar Deli Desktop' => 48000.00, 'Pulpen Gel Pilot G2 Box Isi 12' => 144000.00
+        ];
+        $fashions = [
+            'Hijab Segi Empat Voal Laser Cut' => 42000.00, 'Kemeja Flanel Unisex Retro Checked' => 135000.00,
+            'Kaos Polos Cotton Combed 30s' => 49000.00, 'Celana Panjang Chino Slimfit Stretch' => 149000.00,
+            'Jaket Hoodie Jumper Fleece Tebal' => 175000.00, 'Kaus Kaki Pendek Angkel Anti Slip' => 12000.00,
+            'Jaket Denim Jeans Denim Klasik Blue' => 199000.00, 'Rok Plisket Panjang Premium Ceruti' => 65000.00,
+            'Baju Gamis Syari Muslimah Cantik' => 220000.00, 'Sepatu Sneakers Canvas Kanvas Lokal' => 110000.00
+        ];
+        $electronics = [
+            'Powerbank Robot 10000mAh Dual Port' => 129000.00, 'TWS Wireless Bluetooth Earphone V5.3' => 189000.00,
+            'Kabel Charger Type-C Fast Charging' => 18000.00, 'Adaptor Kepala Charger PD 20W USB-C' => 68000.00,
+            'Mouse Wireless Silent Logitech M220' => 195000.00, 'Keyboard Wireless Bluetooth Mini' => 99000.00,
+            'Lampu LED Bohlam Pintar RGB Wifi 9W' => 115000.00, 'Speaker Bluetooth Portable Waterproof' => 245000.00,
+            'Stand Holder HP Meja Penyangga Lipat' => 15000.00, 'Ring Light Selfie Ringlight Tripod' => 78000.00
+        ];
+        $foods = [
+            'Keripik Singkong Balado Khas Padang' => 25000.00, 'Kopi Susu Gula Aren Botol 1 Liter' => 45000.00,
+            'Kue Nastar Wisman Premium Toples 500g' => 120000.00, 'Sambal Bawang Pedas Gurih Toples' => 22000.00,
+            'Teh Melati Tubruk Wangi Khas Solo' => 10000.00, 'Baso Aci Garut Instan Pedas Kuah' => 18000.00,
+            'Makaroni Pedas Daun Jeruk Asin Gurih' => 15000.00, 'Bumbu Instan Rendang Padang Instan' => 8000.00,
+            'Madu Hutan Murni Asli Sumbawa 250ml' => 95000.00, 'Cokelat batang Batangan Karamel Bar' => 18000.00
+        ];
+        $households = [
+            'Sprei Kasur Katun Halus Ukuran No 1' => 185000.00, 'Gantungan Baju Hanger Kayu Isi 10' => 48000.00,
+            'Kotak Box Organizer Penyimpanan Baju' => 35000.00, 'Set Pisau Dapur Baja Stainless 5in1' => 65000.00,
+            'Talenan Kayu Pinus Alami Estetik' => 22000.00, 'Termos Air Panas Stainless Steel 500ml' => 79000.00,
+            'Sikat Pembersih Kamar Mandi Serbaguna' => 15000.00, 'Rak Sepatu Plastik Bongkar Pasang 4' => 45000.00,
+            'Keset Kaki Kamar Mandi Microfiber Lembut' => 28000.00, 'Hanger Jilbab Ring Gantungan Hijab' => 18000.00
+        ];
 
-        Cart::create([
-            'user_id' => $buyerWati->id,
-            'product_id' => $pFashion1->id,
-            'product_variant_id' => $pFashion1->variants->first()->id, // Hitam
-            'quantity' => 2,
-        ]);
+        // Seed products helper function
+        $allProducts = [];
+        
+        // 1. Books (Toko Budi)
+        foreach ($books as $name => $price) {
+            $p = Product::create([
+                'store_id' => $storeBudi->id,
+                'name' => $name,
+                'slug' => Str::slug($name) . '-' . strtolower(Str::random(4)),
+                'description' => "Produk berkualitas tinggi: $name, sangat cocok untuk keperluan sekolah, hobi membaca, atau hadiah edukasi. Dijual dengan harga grosir terbaik.",
+                'image' => null,
+                'price' => $price,
+                'stock' => rand(20, 100),
+                'discount_percent' => rand(0, 3) * 5.00, // 0%, 5%, 10%, 15%
+            ]);
+            $p->categories()->attach($catBuku->id);
+            $allProducts[] = $p;
+            
+            // Add variants to some
+            if (rand(0, 1)) {
+                ProductVariant::create(['product_id' => $p->id, 'name' => 'Edisi Cetak', 'additional_price' => 0.00, 'stock' => rand(10, 40)]);
+                ProductVariant::create(['product_id' => $p->id, 'name' => 'Edisi Digital PDF', 'additional_price' => -10000.00, 'stock' => 999]);
+            }
+        }
 
-        // 7. Orders & Items (Historical records for sales metrics)
-        // Order 1: Completed - Wati buys from Toko Buku Budi (10 days ago)
-        $ord1_total = 76500.00 + 20000.00; // Book 1 (Hard cover discounted price: Rp 96.500)
-        $ord1 = Order::create([
-            'order_number' => 'ORD-' . Carbon::now()->subDays(10)->format('Ymd') . '-001',
-            'buyer_id' => $buyerWati->id,
-            'store_id' => $storeBudi->id,
-            'voucher_id' => null,
-            'total_amount' => $ord1_total,
-            'discount_amount' => 0.00,
-            'shipping_cost' => 15000.00,
-            'final_amount' => $ord1_total + 15000.00,
-            'status' => 'completed',
-            'notes' => 'Tolong bungkus rapi ya gan.',
-            'shipping_address' => 'Jl. Dipatiukur No. 4, Coblong, Bandung',
-            'shipping_recipient_name' => 'Wati Lestari',
-            'shipping_recipient_phone' => '085678901234',
-            'shipping_courier' => 'JNE Reguler',
-            'shipping_estimate' => '1-2 Hari',
-            'tracking_number' => 'JNE1234567890',
-            'created_at' => Carbon::now()->subDays(10),
-            'updated_at' => Carbon::now()->subDays(8),
-        ]);
+        // 2. Fashions (Toko Ani)
+        foreach ($fashions as $name => $price) {
+            $p = Product::create([
+                'store_id' => $storeAni->id,
+                'name' => $name,
+                'slug' => Str::slug($name) . '-' . strtolower(Str::random(4)),
+                'description' => "Pilihan trendi: $name. Desain eksklusif, jahitan super rapi, adem saat dipakai, dan pas untuk menunjang penampilan kasual sehari-hari.",
+                'image' => null,
+                'price' => $price,
+                'stock' => rand(20, 150),
+                'discount_percent' => rand(0, 2) * 10.00, // 0%, 10%, 20%
+            ]);
+            $p->categories()->attach($catFashion->id);
+            $allProducts[] = $p;
+            
+            if (rand(0, 1)) {
+                ProductVariant::create(['product_id' => $p->id, 'name' => 'Warna Hitam', 'additional_price' => 0.00, 'stock' => rand(15, 50)]);
+                ProductVariant::create(['product_id' => $p->id, 'name' => 'Warna Milo', 'additional_price' => 0.00, 'stock' => rand(15, 50)]);
+                ProductVariant::create(['product_id' => $p->id, 'name' => 'Warna Navy', 'additional_price' => 5000.00, 'stock' => rand(15, 50)]);
+            }
+        }
 
-        OrderItem::create([
-            'order_id' => $ord1->id,
-            'product_id' => $pBuku1->id,
-            'product_variant_id' => $pBuku1->variants->first()->id, // Hard Cover
-            'quantity' => 1,
-            'price' => 85000.00,
-            'discount_amount' => 8500.00, // 10%
-        ]);
+        // 3. Electronics (Toko Dedi)
+        foreach ($electronics as $name => $price) {
+            $p = Product::create([
+                'store_id' => $storeDedi->id,
+                'name' => $name,
+                'slug' => Str::slug($name) . '-' . strtolower(Str::random(4)),
+                'description' => "Gadget canggih: $name. Mendukung performa tinggi, material kuat, garansi toko resmi, kompatibel dengan berbagai merk device modern.",
+                'image' => null,
+                'price' => $price,
+                'stock' => rand(10, 40),
+                'discount_percent' => rand(0, 4) * 5.00, // 0-20%
+            ]);
+            $p->categories()->attach($catElektronik->id);
+            $allProducts[] = $p;
+            
+            if (rand(0, 1)) {
+                ProductVariant::create(['product_id' => $p->id, 'name' => 'Garansi 1 Bulan', 'additional_price' => 0.00, 'stock' => rand(5, 20)]);
+                ProductVariant::create(['product_id' => $p->id, 'name' => 'Garansi 1 Tahun', 'additional_price' => 25000.00, 'stock' => rand(5, 20)]);
+            }
+        }
 
-        Payment::create([
-            'order_id' => $ord1->id,
-            'payment_method' => 'Transfer Bank BCA',
-            'amount' => $ord1->final_amount,
-            'status' => 'confirmed',
-            'payment_receipt' => 'receipts/dummy-receipt-1.jpg',
-            'confirmed_at' => Carbon::now()->subDays(10)->addHours(1),
-            'confirmed_by' => $sellerBudi->id,
-            'created_at' => Carbon::now()->subDays(10),
-        ]);
+        // 4. Kuliner (Toko Budi - sebagai tambahan kuliner instan)
+        foreach ($foods as $name => $price) {
+            $p = Product::create([
+                'store_id' => $storeBudi->id,
+                'name' => $name,
+                'slug' => Str::slug($name) . '-' . strtolower(Str::random(4)),
+                'description' => "Cita rasa khas Indonesia: $name. Higienis, tanpa bahan pengawet kimia berbahaya, halal, dan dikemas dengan aman untuk pengiriman luar kota.",
+                'image' => null,
+                'price' => $price,
+                'stock' => rand(30, 200),
+                'discount_percent' => rand(0, 2) * 5.00, // 0%, 5%, 10%
+            ]);
+            $p->categories()->attach($catKuliner->id);
+            $allProducts[] = $p;
+            
+            if (rand(0, 1)) {
+                ProductVariant::create(['product_id' => $p->id, 'name' => 'Kemasan Standard', 'additional_price' => 0.00, 'stock' => rand(20, 50)]);
+                ProductVariant::create(['product_id' => $p->id, 'name' => 'Kemasan Premium Jar', 'additional_price' => 8000.00, 'stock' => rand(10, 30)]);
+            }
+        }
 
-        OrderHistory::create(['order_id' => $ord1->id, 'status' => 'pending', 'notes' => 'Pesanan berhasil dibuat', 'created_at' => Carbon::now()->subDays(10)]);
-        OrderHistory::create(['order_id' => $ord1->id, 'status' => 'processing', 'notes' => 'Pembayaran terkonfirmasi oleh penjual', 'created_at' => Carbon::now()->subDays(10)->addHours(1)]);
-        OrderHistory::create(['order_id' => $ord1->id, 'status' => 'shipped', 'notes' => 'Pesanan diserahkan ke kurir JNE', 'created_at' => Carbon::now()->subDays(9)]);
-        OrderHistory::create(['order_id' => $ord1->id, 'status' => 'completed', 'notes' => 'Pesanan diterima oleh pembeli', 'created_at' => Carbon::now()->subDays(8)]);
+        // 5. Rumah Tangga (Toko Ani - sebagai tambahan rumah tangga)
+        foreach ($households as $name => $price) {
+            $p = Product::create([
+                'store_id' => $storeAni->id,
+                'name' => $name,
+                'slug' => Str::slug($name) . '-' . strtolower(Str::random(4)),
+                'description' => "Peralatan praktis: $name. Membantu menata rumah menjadi rapi, bersih, estetik, dan nyaman dihuni bersama keluarga tercinta.",
+                'image' => null,
+                'price' => $price,
+                'stock' => rand(15, 80),
+                'discount_percent' => rand(0, 2) * 5.00,
+            ]);
+            $p->categories()->attach($catRumah->id);
+            $allProducts[] = $p;
+        }
 
-        Review::create([
-            'order_item_id' => $ord1->items->first()->id,
-            'product_id' => $pBuku1->id,
-            'user_id' => $buyerWati->id,
-            'rating' => 5,
-            'comment' => 'Bukunya sangat bagus, hard covernya mantap! Packingnya aman dilapis bubble wrap tebal. Terima kasih Budi!',
-        ]);
+        // 7. Generate 105 Orders with various statuses and payment records
+        $orderStatuses = ['completed', 'completed', 'completed', 'completed', 'completed', 'processing', 'shipped', 'pending', 'cancelled', 'returned'];
+        $reviewComments = [
+            5 => ['Barang bagus sekali sesuai deskripsi!', 'Sangat puas belanja di toko ini. Respon cepat.', 'Kualitas bintang lima, harga bersahabat.', 'Recommended seller! Mantap.'],
+            4 => ['Produk oke, berfungsi dengan baik.', 'Bagus, packing rapi, kiriman cepat.', 'Barang oke, sesuai harga.', 'Cukup puas, responsif.'],
+            3 => ['Kualitas standar, pengiriman lumayan lama.', 'Biasa saja, sesuai dengan harganya.', 'Barang ada lecet sedikit tapi masih bisa dipakai.'],
+            2 => ['Kurang sesuai ekspektasi, bahan agak tipis.', 'Respon penjual lambat, barang telat datang.'],
+            1 => ['Sangat kecewa, barang pecah/rusak!', 'Tidak sesuai foto. Kapok belanja di sini.', 'Salah kirim varian dan tidak ada solusi.']
+        ];
+        
+        $couriers = ['JNE', 'J&T', 'SiCepat', 'GoSend'];
+        $banks = ['BCA Transfer', 'Mandiri Transfer', 'BRI Transfer', 'BNI Transfer'];
+        $estimates = ['1-2 Hari', '2-3 Hari', '3-4 Hari', 'Sameday'];
 
-        // Order 2: Completed - Rudi buys from Ani Fashion Hub (5 days ago)
-        $ord2_total = (38250.00 * 2) + 135000.00; // 2 Voal Premium (Milo) + 1 Flanel (Merah L) = Rp 76.500 + Rp 135.000 = Rp 211.500
-        $ord2 = Order::create([
-            'order_number' => 'ORD-' . Carbon::now()->subDays(5)->format('Ymd') . '-002',
-            'buyer_id' => $buyerRudi->id,
-            'store_id' => $storeAni->id,
-            'voucher_id' => null,
-            'total_amount' => $ord2_total,
-            'discount_amount' => 0.00,
-            'shipping_cost' => 20000.00,
-            'final_amount' => $ord2_total + 20000.00,
-            'status' => 'completed',
-            'notes' => 'Tolong kirim warna Milo sesuai pesanan.',
-            'shipping_address' => 'Perumahan Dago Asri Blok C-2, Dago, Bandung',
-            'shipping_recipient_name' => 'Rudi Hartono',
-            'shipping_recipient_phone' => '086789012345',
-            'shipping_courier' => 'SiCepat Reguler',
-            'shipping_estimate' => '2-3 Hari',
-            'tracking_number' => 'SIG987654321',
-            'created_at' => Carbon::now()->subDays(5),
-            'updated_at' => Carbon::now()->subDays(3),
-        ]);
+        for ($o = 1; $o <= 105; $o++) {
+            $buyer = $buyers[rand(0, 9)];
+            $store = $sellers[rand(0, 2)];
+            
+            // Fetch products belonging to this store
+            $storeProducts = Product::where('store_id', $store->id)->get();
+            if ($storeProducts->isEmpty()) continue;
+            
+            // Add 1 to 2 items
+            $itemCount = rand(1, 2);
+            $selectedProducts = $storeProducts->random(min($itemCount, $storeProducts->count()));
+            
+            // Calculate base pricing
+            $subtotal = 0;
+            $itemsData = [];
+            
+            foreach ($selectedProducts as $prod) {
+                $qty = rand(1, 2);
+                $price = $prod->price;
+                $disc = $prod->discount_percent;
+                
+                // Pick variant if exists
+                $variantId = null;
+                $varName = '';
+                $additionalPrice = 0;
+                
+                $variant = $prod->variants->isEmpty() ? null : $prod->variants->random();
+                if ($variant) {
+                    $variantId = $variant->id;
+                    $varName = $variant->name;
+                    $additionalPrice = $variant->additional_price;
+                }
+                
+                $itemPrice = $price + $additionalPrice;
+                $itemDiscountAmount = $itemPrice * ($disc / 100);
+                
+                $subtotal += ($itemPrice - $itemDiscountAmount) * $qty;
+                
+                $itemsData[] = [
+                    'product_id' => $prod->id,
+                    'product_variant_id' => $variantId,
+                    'quantity' => $qty,
+                    'price' => $itemPrice,
+                    'discount' => $disc,
+                ];
+            }
+            
+            // Determine voucher eligibility
+            $voucherId = null;
+            $discountAmount = 0.00;
+            
+            if (rand(0, 1)) {
+                // Try applying store specific or global voucher
+                $voucher = Voucher::where(function ($query) use ($store) {
+                    $query->where('store_id', $store->id)
+                          ->orWhereNull('store_id');
+                })->where('min_spend', '<=', $subtotal)->first();
+                
+                if ($voucher) {
+                    $voucherId = $voucher->id;
+                    if ($voucher->type === 'percent') {
+                        $discountAmount = $subtotal * ($voucher->value / 100);
+                    } else {
+                        $discountAmount = $voucher->value;
+                    }
+                }
+            }
+            
+            $shippingCost = rand(1, 3) * 9000.00; // Rp 9K, 18K, 27K
+            $grandTotal = $subtotal - $discountAmount + $shippingCost;
+            
+            // Status selection
+            $status = $orderStatuses[rand(0, 9)];
+            
+            // Scattered creation dates over the last 30 days
+            $createdAt = Carbon::now()->subDays(rand(0, 30))->subHours(rand(0, 23))->subMinutes(rand(0, 59));
+            $orderNumber = 'ORD-' . $createdAt->format('Ymd') . '-' . strtoupper(Str::random(5));
+            
+            // Insert Order
+            $order = Order::create([
+                'order_number' => $orderNumber,
+                'buyer_id' => $buyer->id,
+                'store_id' => $store->id,
+                'voucher_id' => $voucherId,
+                'total_amount' => $subtotal,
+                'discount_amount' => $discountAmount,
+                'shipping_cost' => $shippingCost,
+                'final_amount' => $grandTotal,
+                'status' => $status,
+                'shipping_address' => 'Jl. Kebagusan Dalam No. ' . rand(1, 99) . ', Pasar Minggu, Jakarta Selatan',
+                'shipping_recipient_name' => $buyer->name,
+                'shipping_recipient_phone' => $buyer->phone,
+                'shipping_courier' => $couriers[rand(0, 3)],
+                'shipping_estimate' => $estimates[rand(0, 3)],
+                'tracking_number' => ($status === 'shipped' || $status === 'completed') ? 'TRK' . $createdAt->format('Ymd') . rand(1000, 9999) : null,
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
+            ]);
 
-        OrderItem::create([
-            'order_id' => $ord2->id,
-            'product_id' => $pFashion1->id,
-            'product_variant_id' => $pFashion1->variants->where('name', 'Milo (Cokelat Muda)')->first()->id ?? null,
-            'quantity' => 2,
-            'price' => 45000.00,
-            'discount_amount' => 6750.00,
-        ]);
+            // Save order items
+            foreach ($itemsData as $itemInfo) {
+                $orderItem = OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $itemInfo['product_id'],
+                    'product_variant_id' => $itemInfo['product_variant_id'],
+                    'quantity' => $itemInfo['quantity'],
+                    'price' => $itemInfo['price'],
+                    'discount_amount' => $itemInfo['discount'],
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt,
+                ]);
 
-        OrderItem::create([
-            'order_id' => $ord2->id,
-            'product_id' => $pFashion2->id,
-            'product_variant_id' => $pFashion2->variants->where('name', 'Merah-Hitam (L)')->first()->id ?? null,
-            'quantity' => 1,
-            'price' => 135000.00,
-            'discount_amount' => 0.00,
-        ]);
+                // Create reviews for completed orders (50% probability)
+                if ($status === 'completed' && rand(0, 1)) {
+                    $rating = rand(3, 5); // Bias towards positive reviews
+                    if (rand(0, 9) === 0) $rating = rand(1, 2); // Occasional negative review
+                    
+                    $comments = $reviewComments[$rating];
+                    $comment = $comments[rand(0, count($comments) - 1)];
 
-        Payment::create([
-            'order_id' => $ord2->id,
-            'payment_method' => 'Transfer Bank Mandiri',
-            'amount' => $ord2->final_amount,
-            'status' => 'confirmed',
-            'payment_receipt' => 'receipts/dummy-receipt-2.jpg',
-            'confirmed_at' => Carbon::now()->subDays(5)->addHours(2),
-            'confirmed_by' => $sellerAni->id,
-            'created_at' => Carbon::now()->subDays(5),
-        ]);
+                    Review::create([
+                        'order_item_id' => $orderItem->id,
+                        'product_id' => $itemInfo['product_id'],
+                        'user_id' => $buyer->id,
+                        'rating' => $rating,
+                        'comment' => $comment,
+                        'is_moderated' => false,
+                        'created_at' => $createdAt->addDays(rand(1, 3)),
+                        'updated_at' => $createdAt->addDays(rand(1, 3)),
+                    ]);
+                }
+            }
 
-        OrderHistory::create(['order_id' => $ord2->id, 'status' => 'pending', 'notes' => 'Pesanan berhasil dibuat', 'created_at' => Carbon::now()->subDays(5)]);
-        OrderHistory::create(['order_id' => $ord2->id, 'status' => 'processing', 'notes' => 'Pembayaran dikonfirmasi', 'created_at' => Carbon::now()->subDays(5)->addHours(2)]);
-        OrderHistory::create(['order_id' => $ord2->id, 'status' => 'shipped', 'notes' => 'Paket dikirim kurir SiCepat', 'created_at' => Carbon::now()->subDays(4)]);
-        OrderHistory::create(['order_id' => $ord2->id, 'status' => 'completed', 'notes' => 'Pesanan tiba di tujuan', 'created_at' => Carbon::now()->subDays(3)]);
+            // Create payments
+            $payStatus = 'pending';
+            if ($status === 'completed' || $status === 'shipped' || $status === 'processing') {
+                $payStatus = 'confirmed';
+            } elseif ($status === 'returned') {
+                $payStatus = 'refunded';
+            } elseif ($status === 'cancelled') {
+                $payStatus = 'failed';
+            }
 
-        Review::create([
-            'order_item_id' => $ord2->items->first()->id,
-            'product_id' => $pFashion1->id,
-            'user_id' => $buyerRudi->id,
-            'rating' => 4,
-            'comment' => 'Kainnya adem, warna Milo-nya sangat elegan. Kurang satu bintang karena kiriman dari kurirnya telat sehari.',
-        ]);
+            Payment::create([
+                'order_id' => $order->id,
+                'payment_method' => $banks[rand(0, 3)],
+                'amount' => $grandTotal,
+                'status' => $payStatus,
+                'payment_receipt' => ($payStatus !== 'pending') ? 'uploads/receipts/proof_' . $order->id . '.jpg' : null,
+                'confirmed_at' => ($payStatus === 'confirmed') ? $createdAt->addMinutes(rand(10, 120)) : null,
+                'confirmed_by' => ($payStatus === 'confirmed') ? $store->user_id : null,
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
+            ]);
 
-        // Order 3: Shipped/Processing - Siska buys from Dedi Elektronik (2 days ago)
-        $ord3_total = 151200.00 + 250000.00; // Powerbank + TWS = Rp 401.200
-        $ord3 = Order::create([
-            'order_number' => 'ORD-' . Carbon::now()->subDays(2)->format('Ymd') . '-003',
-            'buyer_id' => $buyerSiska->id,
-            'store_id' => $storeDedi->id,
-            'voucher_id' => null,
-            'total_amount' => $ord3_total,
-            'discount_amount' => 0.00,
-            'shipping_cost' => 25000.00,
-            'final_amount' => $ord3_total + 25000.00,
-            'status' => 'shipped',
-            'notes' => 'Mohon dikirim secepatnya karena mau dipakai ke luar kota.',
-            'shipping_address' => 'Kost Cempaka Indah, Jl. Ganesha No. 10, Coblong, Bandung',
-            'shipping_recipient_name' => 'Siska Amelia',
-            'shipping_recipient_phone' => '087890123456',
-            'shipping_courier' => 'J&T Express',
-            'shipping_estimate' => '2-3 Hari',
-            'tracking_number' => 'JNT7788990011',
-            'created_at' => Carbon::now()->subDays(2),
-            'updated_at' => Carbon::now()->subDays(1),
-        ]);
+            // Create tracking histories logs
+            OrderHistory::create([
+                'order_id' => $order->id,
+                'status' => 'pending',
+                'notes' => 'Pesanan berhasil dibuat oleh pembeli.',
+                'created_at' => $createdAt,
+            ]);
+            
+            if ($payStatus === 'confirmed') {
+                OrderHistory::create([
+                    'order_id' => $order->id,
+                    'status' => 'processing',
+                    'notes' => 'Pembayaran dikonfirmasi. Penjual sedang memproses pengemasan barang.',
+                    'created_at' => $createdAt->addMinutes(rand(10, 120)),
+                ]);
+            }
 
-        OrderItem::create([
-            'order_id' => $ord3->id,
-            'product_id' => $pElek1->id,
-            'product_variant_id' => null,
-            'quantity' => 1,
-            'price' => 189000.00,
-            'discount_amount' => 37800.00,
-        ]);
+            if ($status === 'shipped' || $status === 'completed') {
+                OrderHistory::create([
+                    'order_id' => $order->id,
+                    'status' => 'shipped',
+                    'notes' => 'Barang diserahkan ke kurir pengiriman dengan resi: ' . $order->tracking_number,
+                    'created_at' => $createdAt->addHours(rand(12, 36)),
+                ]);
+            }
 
-        OrderItem::create([
-            'order_id' => $ord3->id,
-            'product_id' => $pElek2->id,
-            'product_variant_id' => null,
-            'quantity' => 1,
-            'price' => 250000.00,
-            'discount_amount' => 0.00,
-        ]);
+            if ($status === 'completed') {
+                OrderHistory::create([
+                    'order_id' => $order->id,
+                    'status' => 'completed',
+                    'notes' => 'Barang telah diterima oleh pembeli. Transaksi selesai.',
+                    'created_at' => $createdAt->addDays(rand(2, 5)),
+                ]);
+            }
 
-        Payment::create([
-            'order_id' => $ord3->id,
-            'payment_method' => 'Transfer Bank BCA',
-            'amount' => $ord3->final_amount,
-            'status' => 'confirmed',
-            'payment_receipt' => 'receipts/dummy-receipt-3.jpg',
-            'confirmed_at' => Carbon::now()->subDays(2)->addHours(3),
-            'confirmed_by' => $sellerDedi->id,
-            'created_at' => Carbon::now()->subDays(2),
-        ]);
+            // Create returns (for returned orders status)
+            if ($status === 'returned') {
+                OrderReturn::create([
+                    'order_id' => $order->id,
+                    'reason' => 'Barang pecah/robek di bagian pojok saat unboxing paket.',
+                    'evidence_image' => 'uploads/returns/proof_' . $order->id . '.jpg',
+                    'status' => rand(0, 1) ? 'approved' : 'pending',
+                    'admin_notes' => 'Telah diperiksa bukti foto dan disetujui untuk dikembalikan.',
+                    'created_at' => $createdAt->addDays(rand(1, 3)),
+                    'updated_at' => $createdAt->addDays(rand(1, 3)),
+                ]);
+                
+                OrderHistory::create([
+                    'order_id' => $order->id,
+                    'status' => 'returned',
+                    'notes' => 'Pembeli mengajukan komplain retur pengembalian barang rusak.',
+                    'created_at' => $createdAt->addDays(rand(1, 3)),
+                ]);
+            }
+        }
 
-        OrderHistory::create(['order_id' => $ord3->id, 'status' => 'pending', 'notes' => 'Pesanan berhasil dibuat', 'created_at' => Carbon::now()->subDays(2)]);
-        OrderHistory::create(['order_id' => $ord3->id, 'status' => 'processing', 'notes' => 'Pembayaran diterima', 'created_at' => Carbon::now()->subDays(2)->addHours(3)]);
-        OrderHistory::create(['order_id' => $ord3->id, 'status' => 'shipped', 'notes' => 'Pesanan dikirim dengan resi JNT7788990011', 'created_at' => Carbon::now()->subDays(1)]);
-
-        // Order 4: Pending - Wati buys from Toko Buku Budi (Today)
-        $ord4_total = 120000.00 + 23750.00; // Laravel 10 book + Stationary set = Rp 143.750
-        $ord4 = Order::create([
-            'order_number' => 'ORD-' . Carbon::now()->format('Ymd') . '-004',
-            'buyer_id' => $buyerWati->id,
-            'store_id' => $storeBudi->id,
-            'voucher_id' => null,
-            'total_amount' => $ord4_total,
-            'discount_amount' => 0.00,
-            'shipping_cost' => 10000.00,
-            'final_amount' => $ord4_total + 10000.00,
-            'status' => 'pending',
-            'notes' => null,
-            'shipping_address' => 'Jl. Dipatiukur No. 4, Coblong, Bandung',
-            'shipping_recipient_name' => 'Wati Lestari',
-            'shipping_recipient_phone' => '085678901234',
-            'shipping_courier' => 'J&T Express',
-            'shipping_estimate' => '1-2 Hari',
-            'tracking_number' => null,
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
-        ]);
-
-        OrderItem::create([
-            'order_id' => $ord4->id,
-            'product_id' => $pBuku2->id,
-            'product_variant_id' => $pBuku2->variants->first()->id, // Buku cetak
-            'quantity' => 1,
-            'price' => 120000.00,
-            'discount_amount' => 0.00,
-        ]);
-
-        OrderItem::create([
-            'order_id' => $ord4->id,
-            'product_id' => $pBuku3->id,
-            'product_variant_id' => null,
-            'quantity' => 1,
-            'price' => 25000.00,
-            'discount_amount' => 1250.00,
-        ]);
-
-        Payment::create([
-            'order_id' => $ord4->id,
-            'payment_method' => 'Transfer Bank BCA',
-            'amount' => $ord4->final_amount,
-            'status' => 'pending',
-            'payment_receipt' => null,
-            'confirmed_at' => null,
-            'confirmed_by' => null,
-            'created_at' => Carbon::now(),
-        ]);
-
-        OrderHistory::create(['order_id' => $ord4->id, 'status' => 'pending', 'notes' => 'Pesanan berhasil dibuat, menanti pembayaran', 'created_at' => Carbon::now()]);
-
-        // Order 5: Returned/Refunded - Rudi buys from Toko Buku Budi (15 days ago, returned)
-        $ord5_total = 76500.00; // 1 Book 1 (discounted Rp 76.500)
-        $ord5 = Order::create([
-            'order_number' => 'ORD-' . Carbon::now()->subDays(15)->format('Ymd') . '-005',
-            'buyer_id' => $buyerRudi->id,
-            'store_id' => $storeBudi->id,
-            'voucher_id' => null,
-            'total_amount' => $ord5_total,
-            'discount_amount' => 0.00,
-            'shipping_cost' => 15000.00,
-            'final_amount' => $ord5_total + 15000.00,
-            'status' => 'returned',
-            'notes' => 'Beli untuk hadiah.',
-            'shipping_address' => 'Perumahan Dago Asri Blok C-2, Dago, Bandung',
-            'shipping_recipient_name' => 'Rudi Hartono',
-            'shipping_recipient_phone' => '086789012345',
-            'shipping_courier' => 'JNE Reguler',
-            'shipping_estimate' => '1-2 Hari',
-            'tracking_number' => 'JNE998877661',
-            'created_at' => Carbon::now()->subDays(15),
-            'updated_at' => Carbon::now()->subDays(12),
-        ]);
-
-        OrderItem::create([
-            'order_id' => $ord5->id,
-            'product_id' => $pBuku1->id,
-            'product_variant_id' => $pBuku1->variants->first()->id, // Hard Cover
-            'quantity' => 1,
-            'price' => 85000.00,
-            'discount_amount' => 8500.00,
-        ]);
-
-        Payment::create([
-            'order_id' => $ord5->id,
-            'payment_method' => 'Transfer Bank BCA',
-            'amount' => $ord5->final_amount,
-            'status' => 'confirmed',
-            'payment_receipt' => 'receipts/dummy-receipt-5.jpg',
-            'confirmed_at' => Carbon::now()->subDays(15)->addHours(1),
-            'confirmed_by' => $sellerBudi->id,
-            'created_at' => Carbon::now()->subDays(15),
-        ]);
-
-        OrderHistory::create(['order_id' => $ord5->id, 'status' => 'pending', 'notes' => 'Pesanan berhasil dibuat', 'created_at' => Carbon::now()->subDays(15)]);
-        OrderHistory::create(['order_id' => $ord5->id, 'status' => 'processing', 'notes' => 'Pembayaran diterima', 'created_at' => Carbon::now()->subDays(15)->addHours(1)]);
-        OrderHistory::create(['order_id' => $ord5->id, 'status' => 'shipped', 'notes' => 'Dikirim', 'created_at' => Carbon::now()->subDays(14)]);
-        OrderHistory::create(['order_id' => $ord5->id, 'status' => 'completed', 'notes' => 'Diterima', 'created_at' => Carbon::now()->subDays(13)]);
-        OrderHistory::create(['order_id' => $ord5->id, 'status' => 'returned', 'notes' => 'Permintaan retur diajukan', 'created_at' => Carbon::now()->subDays(12)]);
-
-        OrderReturn::create([
-            'order_id' => $ord5->id,
-            'reason' => 'Ada halaman buku yang robek parah dan halaman kosong di bagian tengah.',
-            'evidence_image' => 'returns/dummy-evidence.jpg',
-            'status' => 'approved',
-            'admin_notes' => 'Disetujui retur penuh. Penjual setuju mengganti barang/dana.',
-            'created_at' => Carbon::now()->subDays(12),
-        ]);
-
-        // Order 6: Cancelled - Siska buys from Ani Fashion Hub (8 days ago)
-        $ord6_total = 135000.00; // Flanel shirt
-        $ord6 = Order::create([
-            'order_number' => 'ORD-' . Carbon::now()->subDays(8)->format('Ymd') . '-006',
-            'buyer_id' => $buyerSiska->id,
-            'store_id' => $storeAni->id,
-            'voucher_id' => null,
-            'total_amount' => $ord6_total,
-            'discount_amount' => 0.00,
-            'shipping_cost' => 15000.00,
-            'final_amount' => $ord6_total + 15000.00,
-            'status' => 'cancelled',
-            'notes' => 'Mau ganti kurir.',
-            'shipping_address' => 'Kost Cempaka Indah, Jl. Ganesha No. 10, Bandung',
-            'shipping_recipient_name' => 'Siska Amelia',
-            'shipping_recipient_phone' => '087890123456',
-            'shipping_courier' => 'JNE Reguler',
-            'shipping_estimate' => '1-2 Hari',
-            'tracking_number' => null,
-            'created_at' => Carbon::now()->subDays(8),
-            'updated_at' => Carbon::now()->subDays(8),
-        ]);
-
-        OrderItem::create([
-            'order_id' => $ord6->id,
-            'product_id' => $pFashion2->id,
-            'product_variant_id' => $pFashion2->variants->first()->id,
-            'quantity' => 1,
-            'price' => 135000.00,
-            'discount_amount' => 0.00,
-        ]);
-
-        OrderHistory::create(['order_id' => $ord6->id, 'status' => 'pending', 'notes' => 'Pesanan berhasil dibuat', 'created_at' => Carbon::now()->subDays(8)]);
-        OrderHistory::create(['order_id' => $ord6->id, 'status' => 'cancelled', 'notes' => 'Dibatalkan oleh pembeli sebelum pembayaran', 'created_at' => Carbon::now()->subDays(8)]);
-
-        // 8. Reviews on other items to seed ratings
-        Review::create([
-            'order_item_id' => $ord2->items->last()->id,
-            'product_id' => $pFashion2->id,
-            'user_id' => $buyerRudi->id,
-            'rating' => 5,
-            'comment' => 'Kemeja flanelnya pas sekali di badan, tebal dan nyaman. Jahitannya rapi. Sangat merekomendasikan penjual ini!',
-        ]);
+        // 8. Populating summary daily sales report database values
+        // Gather all completed orders
+        $completedOrders = Order::where('status', 'completed')->get();
+        foreach ($completedOrders as $order) {
+            $date = Carbon::parse($order->created_at)->format('Y-m-d');
+            
+            // Check if summary entry exists
+            $summary = \DB::table('daily_sales_summaries')
+                ->where('store_id', $order->store_id)
+                ->where('date', $date)
+                ->first();
+                
+            if ($summary) {
+                \DB::table('daily_sales_summaries')
+                    ->where('id', $summary->id)
+                    ->update([
+                        'total_sales' => $summary->total_sales + $order->final_amount,
+                        'order_count' => $summary->order_count + 1,
+                        'updated_at' => Carbon::now(),
+                    ]);
+            } else {
+                \DB::table('daily_sales_summaries')->insert([
+                    'store_id' => $order->store_id,
+                    'date' => $date,
+                    'total_sales' => $order->final_amount,
+                    'order_count' => 1,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]);
+            }
+        }
     }
 }

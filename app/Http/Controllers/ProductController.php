@@ -13,7 +13,7 @@ class ProductController extends Controller
     {
         $categories = Category::all();
         
-        $query = Product::query()->with(['store', 'category', 'reviews']);
+        $query = Product::query()->with(['store', 'categories', 'reviews']);
 
         // Search Filter
         if ($request->filled('search')) {
@@ -22,7 +22,7 @@ class ProductController extends Controller
 
         // Category Filter
         if ($request->filled('category')) {
-            $query->whereHas('category', function ($q) use ($request) {
+            $query->whereHas('categories', function ($q) use ($request) {
                 $q->where('slug', $request->category);
             });
         }
@@ -44,12 +44,16 @@ class ProductController extends Controller
 
     public function show($slug)
     {
-        $product = Product::with(['store', 'category', 'variants', 'reviews.user'])
+        $product = Product::with(['store', 'categories', 'variants', 'reviews.user'])
             ->where('slug', $slug)
             ->firstOrFail();
 
         $reviews = $product->reviews()->where('is_moderated', false)->latest()->get();
-        $relatedProducts = Product::where('category_id', $product->category_id)
+        
+        // Find related products sharing the same categories
+        $relatedProducts = Product::whereHas('categories', function ($q) use ($product) {
+                $q->whereIn('categories.id', $product->categories->pluck('id'));
+            })
             ->where('id', '!=', $product->id)
             ->limit(4)
             ->get();
@@ -59,7 +63,7 @@ class ProductController extends Controller
 
     public function storeShow($slug)
     {
-        $store = Store::with(['products.category', 'user'])
+        $store = Store::with(['products.categories', 'user'])
             ->where('slug', $slug)
             ->firstOrFail();
 
