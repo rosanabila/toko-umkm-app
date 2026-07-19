@@ -150,6 +150,9 @@
                         <a href="{{ route('admin.returns') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all {{ request()->routeIs('admin.returns') ? 'bg-indigo-600 text-white font-semibold' : 'hover:bg-slate-800 hover:text-white' }}">
                             <i data-lucide="refresh-cw" class="w-4 h-4"></i> Retur Barang
                         </a>
+                        <a href="{{ route('admin.categories.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all {{ request()->routeIs('admin.categories.*') ? 'bg-indigo-600 text-white font-semibold' : 'hover:bg-slate-800 hover:text-white' }}">
+                            <i data-lucide="grid" class="w-4 h-4"></i> Kelola Kategori
+                        </a>
                     @endif
                 </nav>
             </aside>

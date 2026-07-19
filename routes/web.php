@@ -11,6 +11,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SellerProductController;
 use App\Http\Controllers\SellerVoucherController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\AdminCategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -93,5 +94,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/reviews/{id}/moderate', [AdminController::class, 'moderateReview'])->name('moderateReview');
         Route::get('/returns', [AdminController::class, 'returns'])->name('returns');
         Route::post('/returns/{id}/moderate', [AdminController::class, 'moderateReturn'])->name('moderateReturn');
+        Route::resource('/categories', AdminCategoryController::class);
     });
 });
