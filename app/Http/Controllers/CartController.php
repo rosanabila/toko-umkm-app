@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Voucher;
 use App\Models\OrderHistory;
+use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,12 @@ use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
+    protected $orderService;
+
+    public function __construct(OrderService $orderService)
+    {
+        $this->orderService = $orderService;
+    }
     public function index(Request $request)
     {
         $cartItems = Cart::with(['product.store', 'variant'])
@@ -222,123 +229,16 @@ class CartController extends Controller
             'shipping_cost' => 'required|numeric|min:0',
         ]);
 
-        $storeId = $request->store_id;
-        
-        // Fetch cart items belonging to this store
-        $cartItems = Cart::with(['product.store', 'variant'])
-            ->where('user_id', Auth::id())
-            ->whereHas('product', function ($query) use ($storeId) {
-                $query->where('store_id', $storeId);
-            })->get();
-
-        if ($cartItems->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', 'Barang belanjaan tidak ditemukan.');
-        }
-
-        // Double check stock before order creation
-        foreach ($cartItems as $item) {
-            if ($item->product_variant_id) {
-                if ($item->variant->stock < $item->quantity) {
-                    return redirect()->route('cart.index')->with('error', 'Stok varian produk "' . $item->product->name . ' - ' . $item->variant->name . '" tidak mencukupi.');
-                }
-            } else {
-                if ($item->product->stock < $item->quantity) {
-                    return redirect()->route('cart.index')->with('error', 'Stok produk "' . $item->product->name . '" tidak mencukupi.');
-                }
-            }
-        }
-
-        // Calculations
-        $subtotal = 0;
-        foreach ($cartItems as $item) {
-            $subtotal += $item->subtotal;
-        }
-
-        // Verify discount voucher
-        $discount = 0;
         $voucherId = session('applied_voucher_id');
-        if ($voucherId) {
-            $voucher = Voucher::find($voucherId);
-            if ($voucher && ($voucher->store_id == null || $voucher->store_id == $storeId)) {
-                $discount = session('voucher_discount', 0);
-            }
-        }
+        $voucherDiscount = session('voucher_discount', 0);
 
-        $shippingCost = $request->shipping_cost;
-        $finalAmount = max(0, $subtotal - $discount) + $shippingCost;
-
-        // Generate Order Number: ORD-YYYYMMDD-XXXXX
-        $orderNumber = 'ORD-' . date('Ymd') . '-' . strtoupper(Str::random(5));
-
-        // Estimate Delivery times based on courier
-        $estimate = '2-3 Hari Kerja';
-        if (Str::contains($request->shipping_courier, 'Express') || Str::contains($request->shipping_courier, 'GoSend')) {
-            $estimate = '1 Hari Kerja';
-        }
-
-        DB::beginTransaction();
         try {
-            // 1. Create Order
-            $order = Order::create([
-                'order_number' => $orderNumber,
-                'buyer_id' => Auth::id(),
-                'store_id' => $storeId,
-                'voucher_id' => $voucherId ?: null,
-                'total_amount' => $subtotal,
-                'discount_amount' => $discount,
-                'shipping_cost' => $shippingCost,
-                'final_amount' => $finalAmount,
-                'status' => 'pending',
-                'notes' => $request->input('notes'),
-                'shipping_address' => $request->shipping_address,
-                'shipping_recipient_name' => $request->shipping_recipient_name,
-                'shipping_recipient_phone' => $request->shipping_recipient_phone,
-                'shipping_courier' => $request->shipping_courier,
-                'shipping_estimate' => $estimate,
-            ]);
-
-            // 2. Create Order Items and Deduct Stock
-            foreach ($cartItems as $item) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $item->product_id,
-                    'product_variant_id' => $item->product_variant_id,
-                    'quantity' => $item->quantity,
-                    'price' => $item->product->price,
-                    'discount_amount' => $item->product->price - $item->product->discounted_price,
-                ]);
-
-                // Deduct stock
-                if ($item->product_variant_id) {
-                    $variant = ProductVariant::find($item->product_variant_id);
-                    $variant->stock -= $item->quantity;
-                    $variant->save();
-                } else {
-                    $product = Product::find($item->product_id);
-                    $product->stock -= $item->quantity;
-                    $product->save();
-                }
-
-                // Delete cart item
-                $item->delete();
-            }
-
-            // 3. Create initial Payment record
-            Payment::create([
-                'order_id' => $order->id,
-                'payment_method' => 'Transfer Bank (Verifikasi Manual)',
-                'amount' => $order->final_amount,
-                'status' => 'pending',
-            ]);
-
-            // 4. Log order history
-            OrderHistory::create([
-                'order_id' => $order->id,
-                'status' => 'pending',
-                'notes' => 'Pesanan berhasil dibuat, menanti pembayaran oleh pembeli.',
-            ]);
-
-            DB::commit();
+            $order = $this->orderService->placeOrder(
+                Auth::id(),
+                $request->all(),
+                $voucherId,
+                $voucherDiscount
+            );
 
             // Clear applied voucher sessions
             session()->forget(['applied_voucher_id', 'voucher_discount', 'voucher_code']);
@@ -346,7 +246,6 @@ class CartController extends Controller
             return redirect()->route('buyer.orderDetail', $order->id)->with('success', 'Pesanan Anda berhasil dibuat! Silakan unggah bukti transfer pembayaran.');
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return redirect()->route('cart.index')->with('error', 'Terjadi kesalahan saat memproses pesanan Anda: ' . $e->getMessage());
         }
     }

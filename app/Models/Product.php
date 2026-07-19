@@ -69,4 +69,34 @@ class Product extends Model
     {
         return $this->reviews()->where('is_moderated', false)->avg('rating') ?: 0;
     }
+
+    /**
+     * Scope a query to filter products by search, category, and price range.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param array $filters
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeFilter($query, array $filters)
+    {
+        $query->when($filters['search'] ?? null, function ($query, $search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        });
+
+        $query->when($filters['category'] ?? null, function ($query, $category) {
+            $query->whereHas('categories', function ($q) use ($category) {
+                $q->where('slug', $category);
+            });
+        });
+
+        $query->when($filters['price_min'] ?? null, function ($query, $priceMin) {
+            $query->where('price', '>=', $priceMin);
+        });
+
+        $query->when($filters['price_max'] ?? null, function ($query, $priceMax) {
+            $query->where('price', '<=', $priceMax);
+        });
+
+        return $query;
+    }
 }

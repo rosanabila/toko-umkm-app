@@ -67,6 +67,7 @@
                     <div class="form-group">
                         <label for="name" class="form-label">Nama Produk</label>
                         <input type="text" name="name" id="name" class="form-control" placeholder="Contoh: Kemeja Flanel Slimfit" value="{{ old('name') }}" required>
+                        <div id="name-error" style="color: var(--status-cancelled); font-size: 0.8rem; margin-top: 0.25rem; display: none;"></div>
                     </div>
 
                     <div class="form-group">
@@ -84,6 +85,7 @@
                     <div class="form-group">
                         <label for="price" class="form-label">Harga Base (Rp)</label>
                         <input type="number" name="price" id="price" class="form-control" placeholder="Contoh: 100000" value="{{ old('price') }}" required>
+                        <div id="price-error" style="color: var(--status-cancelled); font-size: 0.8rem; margin-top: 0.25rem; display: none;"></div>
                     </div>
 
                     <div class="form-group">
@@ -94,6 +96,7 @@
                     <div class="form-group">
                         <label for="stock" class="form-label">Stok Utama</label>
                         <input type="number" name="stock" id="stock" class="form-control" placeholder="Contoh: 50" value="{{ old('stock', 0) }}" required>
+                        <div id="stock-error" style="color: var(--status-cancelled); font-size: 0.8rem; margin-top: 0.25rem; display: none;"></div>
                     </div>
                 </div>
 
@@ -157,13 +160,76 @@
             container.appendChild(row);
             lucide.createIcons();
 
-            // Hook delete action
+            // Hook delete action with confirmation
             row.querySelector('.delete-row-btn').addEventListener('click', () => {
-                row.remove();
+                if (confirm('Apakah Anda yakin ingin menghapus baris varian ini?')) {
+                    row.remove();
+                }
             });
         }
 
         addBtn.addEventListener('click', addVariantRow);
+
+        // Real-time validation
+        const nameInput = document.getElementById('name');
+        const priceInput = document.getElementById('price');
+        const stockInput = document.getElementById('stock');
+        const form = document.querySelector('form');
+
+        const nameError = document.getElementById('name-error');
+        const priceError = document.getElementById('price-error');
+        const stockError = document.getElementById('stock-error');
+
+        function validateName() {
+            const val = nameInput.value.trim();
+            if (val.length < 5) {
+                nameError.innerText = 'Nama produk minimal harus terdiri dari 5 karakter.';
+                nameError.style.display = 'block';
+                return false;
+            } else {
+                nameError.style.display = 'none';
+                return true;
+            }
+        }
+
+        function validatePrice() {
+            const val = parseFloat(priceInput.value);
+            if (isNaN(val) || val < 0) {
+                priceError.innerText = 'Harga base tidak boleh bernilai negatif.';
+                priceError.style.display = 'block';
+                return false;
+            } else {
+                priceError.style.display = 'none';
+                return true;
+            }
+        }
+
+        function validateStock() {
+            const val = parseFloat(stockInput.value);
+            if (isNaN(val) || val < 0 || !Number.isInteger(val)) {
+                stockError.innerText = 'Stok utama harus berupa angka bulat dan tidak boleh negatif.';
+                stockError.style.display = 'block';
+                return false;
+            } else {
+                stockError.style.display = 'none';
+                return true;
+            }
+        }
+
+        nameInput.addEventListener('input', validateName);
+        priceInput.addEventListener('input', validatePrice);
+        stockInput.addEventListener('input', validateStock);
+
+        form.addEventListener('submit', (e) => {
+            const isNameValid = validateName();
+            const isPriceValid = validatePrice();
+            const isStockValid = validateStock();
+
+            if (!isNameValid || !isPriceValid || !isStockValid) {
+                e.preventDefault();
+                alert('Silakan perbaiki kesalahan validasi sebelum menyimpan produk.');
+            }
+        });
     });
 </script>
 @endsection

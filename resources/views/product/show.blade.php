@@ -107,6 +107,14 @@
                             </span>
                         </div>
                     </form>
+                    
+                    <form action="{{ route('wishlist.store') }}" method="POST" style="margin-top: 1rem;">
+                        @csrf
+                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                        <button type="submit" class="btn btn-secondary" style="width: 100%; padding: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: var(--status-cancelled); border-color: rgba(220, 38, 38, 0.2); background: rgba(220, 38, 38, 0.02);">
+                            <i data-lucide="heart" style="width: 16px; height: 16px; fill: var(--status-cancelled);"></i> Simpan ke Wishlist
+                        </button>
+                    </form>
                 @else
                     <div style="background-color: var(--primary-light); color: var(--primary); padding: 1rem; border-radius: var(--radius-md); text-align: center; font-weight: 500;">
                         <i data-lucide="info" style="display: inline-block; vertical-align: middle; margin-right: 0.25rem;"></i>

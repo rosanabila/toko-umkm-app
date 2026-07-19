@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Voucher;
+use App\Http\Requests\StoreVoucherRequest;
+use App\Http\Requests\UpdateVoucherRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -28,19 +30,9 @@ class SellerVoucherController extends Controller
         return view('seller.vouchers.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreVoucherRequest $request)
     {
         $store = $this->getStore();
-
-        $request->validate([
-            'code' => 'required|string|max:50|unique:vouchers,code',
-            'type' => 'required|in:fixed,percent',
-            'value' => 'required|numeric|min:0',
-            'min_spend' => 'required|numeric|min:0',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'active' => 'required|boolean',
-        ]);
 
         Voucher::create([
             'store_id' => $store->id,
@@ -64,20 +56,10 @@ class SellerVoucherController extends Controller
         return view('seller.vouchers.edit', compact('voucher'));
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateVoucherRequest $request, $id)
     {
         $store = $this->getStore();
         $voucher = Voucher::where('store_id', $store->id)->where('id', $id)->firstOrFail();
-
-        $request->validate([
-            'code' => 'required|string|max:50|unique:vouchers,code,' . $voucher->id,
-            'type' => 'required|in:fixed,percent',
-            'value' => 'required|numeric|min:0',
-            'min_spend' => 'required|numeric|min:0',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'active' => 'required|boolean',
-        ]);
 
         $voucher->update([
             'code' => strtoupper($request->code),

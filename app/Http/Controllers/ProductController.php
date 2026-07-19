@@ -13,31 +13,10 @@ class ProductController extends Controller
     {
         $categories = Category::all();
         
-        $query = Product::query()->with(['store', 'categories', 'reviews']);
-
-        // Search Filter
-        if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
-        }
-
-        // Category Filter
-        if ($request->filled('category')) {
-            $query->whereHas('categories', function ($q) use ($request) {
-                $q->where('slug', $request->category);
-            });
-        }
-
-        // Price Min Filter
-        if ($request->filled('price_min')) {
-            $query->where('price', '>=', $request->price_min);
-        }
-
-        // Price Max Filter
-        if ($request->filled('price_max')) {
-            $query->where('price', '<=', $request->price_max);
-        }
-
-        $products = $query->latest()->paginate(12);
+        $products = Product::with(['store', 'categories', 'reviews'])
+            ->filter($request->only(['search', 'category', 'price_min', 'price_max']))
+            ->latest()
+            ->paginate(12);
 
         return view('welcome', compact('products', 'categories'));
     }

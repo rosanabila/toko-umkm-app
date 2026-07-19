@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Category;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -34,24 +36,9 @@ class SellerProductController extends Controller
         return view('seller.products.create', compact('categories'));
     }
 
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
         $store = $this->getStore();
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'discount_percent' => 'required|numeric|min:0|max:100',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048', // Max 2MB image
-            
-            // Variants validation
-            'variant_name.*' => 'nullable|string|max:100',
-            'variant_price.*' => 'nullable|numeric|min:0',
-            'variant_stock.*' => 'nullable|integer|min:0',
-        ]);
 
         DB::beginTransaction();
         try {
@@ -116,26 +103,10 @@ class SellerProductController extends Controller
         return view('seller.products.edit', compact('product', 'categories'));
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateProductRequest $request, $id)
     {
         $store = $this->getStore();
         $product = Product::where('store_id', $store->id)->where('id', $id)->firstOrFail();
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'discount_percent' => 'required|numeric|min:0|max:100',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
-            
-            // Variants
-            'variant_id.*' => 'nullable|integer',
-            'variant_name.*' => 'nullable|string|max:100',
-            'variant_price.*' => 'nullable|numeric|min:0',
-            'variant_stock.*' => 'nullable|integer|min:0',
-        ]);
 
         DB::beginTransaction();
         try {

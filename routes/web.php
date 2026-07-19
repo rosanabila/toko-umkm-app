@@ -10,6 +10,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SellerProductController;
 use App\Http\Controllers\SellerVoucherController;
+use App\Http\Controllers\WishlistController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,6 +50,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/buyer/order/{id}/cancel', [BuyerController::class, 'cancelOrder'])->name('buyer.cancelOrder');
         Route::post('/buyer/order/{id}/return', [BuyerController::class, 'submitReturn'])->name('buyer.submitReturn');
         Route::post('/buyer/review/add', [BuyerController::class, 'submitReview'])->name('buyer.submitReview');
+        
+        // Wishlists CRUD
+        Route::resource('/wishlist', WishlistController::class)->only(['index', 'store', 'destroy']);
     });
 
     // Invoice PDF - Accessible by buyer (owner) and seller (store owner) or admin

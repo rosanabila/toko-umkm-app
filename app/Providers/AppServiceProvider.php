@@ -19,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        view()->composer('seller.*', function ($view) {
+            if (auth()->check() && auth()->user()->isPenjual()) {
+                $view->with('store', auth()->user()->store);
+            }
+        });
     }
 }

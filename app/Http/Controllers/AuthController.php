@@ -3,13 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Services\AuthService;
 use Illuminate\Http\Request;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    protected $authService;
+
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;
+    }
+
     public function showLogin()
     {
         if (Auth::check()) {
@@ -61,23 +67,12 @@ class AuthController extends Controller
             'role' => 'required|in:pembeli,penjual', // Allow registering as buyer or seller
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-            'phone' => $request->phone,
-        ]);
+        // Delegate user and store creation to AuthService
+        $user = $this->authService->register($request->all());
 
         Auth::login($user);
 
         if ($user->isPenjual()) {
-            // Automatically create a dummy store profile that they must complete later
-            $user->store()->create([
-                'name' => 'Toko ' . $user->name,
-                'slug' => 'toko-' . strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $user->name)),
-                'description' => 'Profil toko baru Anda. Edit profil untuk mengubah deskripsi.',
-            ]);
             return redirect()->route('seller.dashboard')->with('success', 'Pendaftaran berhasil! Selamat datang di dashboard penjual Anda.');
         }
 
